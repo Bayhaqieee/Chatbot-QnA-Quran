@@ -1,0 +1,4503 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "009e6fe8",
+   "metadata": {
+    "id": "B-QR-Fuey5Wt",
+    "papermill": {
+     "duration": 0.006844,
+     "end_time": "2025-05-08T07:44:39.476666",
+     "exception": false,
+     "start_time": "2025-05-08T07:44:39.469822",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "# Chatbot Q&A Quranic Reasoning"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d649ee17",
+   "metadata": {
+    "id": "69bv8XSgy6Vi",
+    "papermill": {
+     "duration": 0.005515,
+     "end_time": "2025-05-08T07:44:39.488060",
+     "exception": false,
+     "start_time": "2025-05-08T07:44:39.482545",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Business Understanding"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "38993880",
+   "metadata": {
+    "id": "nQvFsf1zzChe",
+    "papermill": {
+     "duration": 0.005546,
+     "end_time": "2025-05-08T07:44:39.499226",
+     "exception": false,
+     "start_time": "2025-05-08T07:44:39.493680",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "- Bagaimana potensi penggunaan QRQA Dataset dalam mengembangkan produk edukasi digital Islam berbasis AI (seperti chatbot tanya jawab, aplikasi pembelajaran, atau virtual mufti)?\n",
+    "\n",
+    "  _Untuk mengidentifikasi peluang produk turunan dan segmen pasar potensial (pelajar, akademisi, pesantren digital, dll.)._\n",
+    "\n",
+    "- Model bahasa mana (seperti LLaMA, Mistral, DeepSeek, dsb.) yang paling cocok untuk fine-tuning dengan QRQA Dataset dalam konteks kecepatan, akurasi, dan efisiensi biaya?\n",
+    "\n",
+    "  _Akan dites pada Notebook ini._\n",
+    "\n",
+    "- Bagaimana cara mengukur efektivitas reasoning model terhadap pertanyaan-pertanyaan kompleks dalam QRQA?\n",
+    "\n",
+    "  _Menggunakan metrik evaluasi seperti BLEU, ROUGE, atau human-evaluated Islamic consistency score._"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "09b072d5",
+   "metadata": {
+    "id": "0i30LmD2zM3b",
+    "papermill": {
+     "duration": 0.005573,
+     "end_time": "2025-05-08T07:44:39.510426",
+     "exception": false,
+     "start_time": "2025-05-08T07:44:39.504853",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Data and Tools Acquisition"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "cce50beb",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:44:39.522801Z",
+     "iopub.status.busy": "2025-05-08T07:44:39.522569Z",
+     "iopub.status.idle": "2025-05-08T07:44:54.117188Z",
+     "shell.execute_reply": "2025-05-08T07:44:54.116252Z"
+    },
+    "executionInfo": {
+     "elapsed": 126,
+     "status": "error",
+     "timestamp": 1744105639679,
+     "user": {
+      "displayName": "Aditya Bayhaqie",
+      "userId": "16906297684641538968"
+     },
+     "user_tz": -420
+    },
+    "id": "0TFI_aqey8sC",
+    "outputId": "1ae695c9-df52-4db6-a813-6ef312ec54f7",
+    "papermill": {
+     "duration": 14.603328,
+     "end_time": "2025-05-08T07:44:54.119458",
+     "exception": false,
+     "start_time": "2025-05-08T07:44:39.516130",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: transformers in /usr/local/lib/python3.11/dist-packages (4.51.1)\r\n",
+      "Requirement already satisfied: filelock in /usr/local/lib/python3.11/dist-packages (from transformers) (3.18.0)\r\n",
+      "Requirement already satisfied: huggingface-hub<1.0,>=0.30.0 in /usr/local/lib/python3.11/dist-packages (from transformers) (0.30.2)\r\n",
+      "Requirement already satisfied: numpy>=1.17 in /usr/local/lib/python3.11/dist-packages (from transformers) (1.26.4)\r\n",
+      "Requirement already satisfied: packaging>=20.0 in /usr/local/lib/python3.11/dist-packages (from transformers) (24.2)\r\n",
+      "Requirement already satisfied: pyyaml>=5.1 in /usr/local/lib/python3.11/dist-packages (from transformers) (6.0.2)\r\n",
+      "Requirement already satisfied: regex!=2019.12.17 in /usr/local/lib/python3.11/dist-packages (from transformers) (2024.11.6)\r\n",
+      "Requirement already satisfied: requests in /usr/local/lib/python3.11/dist-packages (from transformers) (2.32.3)\r\n",
+      "Requirement already satisfied: tokenizers<0.22,>=0.21 in /usr/local/lib/python3.11/dist-packages (from transformers) (0.21.0)\r\n",
+      "Requirement already satisfied: safetensors>=0.4.3 in /usr/local/lib/python3.11/dist-packages (from transformers) (0.5.2)\r\n",
+      "Requirement already satisfied: tqdm>=4.27 in /usr/local/lib/python3.11/dist-packages (from transformers) (4.67.1)\r\n",
+      "Requirement already satisfied: fsspec>=2023.5.0 in /usr/local/lib/python3.11/dist-packages (from huggingface-hub<1.0,>=0.30.0->transformers) (2025.3.2)\r\n",
+      "Requirement already satisfied: typing-extensions>=3.7.4.3 in /usr/local/lib/python3.11/dist-packages (from huggingface-hub<1.0,>=0.30.0->transformers) (4.13.1)\r\n",
+      "Requirement already satisfied: mkl_fft in /usr/local/lib/python3.11/dist-packages (from numpy>=1.17->transformers) (1.3.8)\r\n",
+      "Requirement already satisfied: mkl_random in /usr/local/lib/python3.11/dist-packages (from numpy>=1.17->transformers) (1.2.4)\r\n",
+      "Requirement already satisfied: mkl_umath in /usr/local/lib/python3.11/dist-packages (from numpy>=1.17->transformers) (0.1.1)\r\n",
+      "Requirement already satisfied: mkl in /usr/local/lib/python3.11/dist-packages (from numpy>=1.17->transformers) (2025.1.0)\r\n",
+      "Requirement already satisfied: tbb4py in /usr/local/lib/python3.11/dist-packages (from numpy>=1.17->transformers) (2022.1.0)\r\n",
+      "Requirement already satisfied: mkl-service in /usr/local/lib/python3.11/dist-packages (from numpy>=1.17->transformers) (2.4.1)\r\n",
+      "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/dist-packages (from requests->transformers) (3.4.1)\r\n",
+      "Requirement already satisfied: idna<4,>=2.5 in /usr/local/lib/python3.11/dist-packages (from requests->transformers) (3.10)\r\n",
+      "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/dist-packages (from requests->transformers) (2.3.0)\r\n",
+      "Requirement already satisfied: certifi>=2017.4.17 in /usr/local/lib/python3.11/dist-packages (from requests->transformers) (2025.1.31)\r\n",
+      "Requirement already satisfied: intel-openmp<2026,>=2024 in /usr/local/lib/python3.11/dist-packages (from mkl->numpy>=1.17->transformers) (2024.2.0)\r\n",
+      "Requirement already satisfied: tbb==2022.* in /usr/local/lib/python3.11/dist-packages (from mkl->numpy>=1.17->transformers) (2022.1.0)\r\n",
+      "Requirement already satisfied: tcmlib==1.* in /usr/local/lib/python3.11/dist-packages (from tbb==2022.*->mkl->numpy>=1.17->transformers) (1.2.0)\r\n",
+      "Requirement already satisfied: intel-cmplr-lib-rt in /usr/local/lib/python3.11/dist-packages (from mkl_umath->numpy>=1.17->transformers) (2024.2.0)\r\n",
+      "Requirement already satisfied: intel-cmplr-lib-ur==2024.2.0 in /usr/local/lib/python3.11/dist-packages (from intel-openmp<2026,>=2024->mkl->numpy>=1.17->transformers) (2024.2.0)\r\n",
+      "Requirement already satisfied: kaggle in /usr/local/lib/python3.11/dist-packages (1.7.4.2)\r\n",
+      "Requirement already satisfied: bleach in /usr/local/lib/python3.11/dist-packages (from kaggle) (6.2.0)\r\n",
+      "Requirement already satisfied: certifi>=14.05.14 in /usr/local/lib/python3.11/dist-packages (from kaggle) (2025.1.31)\r\n",
+      "Requirement already satisfied: charset-normalizer in /usr/local/lib/python3.11/dist-packages (from kaggle) (3.4.1)\r\n",
+      "Requirement already satisfied: idna in /usr/local/lib/python3.11/dist-packages (from kaggle) (3.10)\r\n",
+      "Requirement already satisfied: protobuf in /usr/local/lib/python3.11/dist-packages (from kaggle) (3.20.3)\r\n",
+      "Requirement already satisfied: python-dateutil>=2.5.3 in /usr/local/lib/python3.11/dist-packages (from kaggle) (2.9.0.post0)\r\n",
+      "Requirement already satisfied: python-slugify in /usr/local/lib/python3.11/dist-packages (from kaggle) (8.0.4)\r\n",
+      "Requirement already satisfied: requests in /usr/local/lib/python3.11/dist-packages (from kaggle) (2.32.3)\r\n",
+      "Requirement already satisfied: setuptools>=21.0.0 in /usr/local/lib/python3.11/dist-packages (from kaggle) (75.1.0)\r\n",
+      "Requirement already satisfied: six>=1.10 in /usr/local/lib/python3.11/dist-packages (from kaggle) (1.17.0)\r\n",
+      "Requirement already satisfied: text-unidecode in /usr/local/lib/python3.11/dist-packages (from kaggle) (1.3)\r\n",
+      "Requirement already satisfied: tqdm in /usr/local/lib/python3.11/dist-packages (from kaggle) (4.67.1)\r\n",
+      "Requirement already satisfied: urllib3>=1.15.1 in /usr/local/lib/python3.11/dist-packages (from kaggle) (2.3.0)\r\n",
+      "Requirement already satisfied: webencodings in /usr/local/lib/python3.11/dist-packages (from kaggle) (0.5.1)\r\n",
+      "Collecting rouge-score\r\n",
+      "  Downloading rouge_score-0.1.2.tar.gz (17 kB)\r\n",
+      "  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\r\n",
+      "Requirement already satisfied: absl-py in /usr/local/lib/python3.11/dist-packages (from rouge-score) (1.4.0)\r\n",
+      "Requirement already satisfied: nltk in /usr/local/lib/python3.11/dist-packages (from rouge-score) (3.9.1)\r\n",
+      "Requirement already satisfied: numpy in /usr/local/lib/python3.11/dist-packages (from rouge-score) (1.26.4)\r\n",
+      "Requirement already satisfied: six>=1.14.0 in /usr/local/lib/python3.11/dist-packages (from rouge-score) (1.17.0)\r\n",
+      "Requirement already satisfied: click in /usr/local/lib/python3.11/dist-packages (from nltk->rouge-score) (8.1.8)\r\n",
+      "Requirement already satisfied: joblib in /usr/local/lib/python3.11/dist-packages (from nltk->rouge-score) (1.4.2)\r\n",
+      "Requirement already satisfied: regex>=2021.8.3 in /usr/local/lib/python3.11/dist-packages (from nltk->rouge-score) (2024.11.6)\r\n",
+      "Requirement already satisfied: tqdm in /usr/local/lib/python3.11/dist-packages (from nltk->rouge-score) (4.67.1)\r\n",
+      "Requirement already satisfied: mkl_fft in /usr/local/lib/python3.11/dist-packages (from numpy->rouge-score) (1.3.8)\r\n",
+      "Requirement already satisfied: mkl_random in /usr/local/lib/python3.11/dist-packages (from numpy->rouge-score) (1.2.4)\r\n",
+      "Requirement already satisfied: mkl_umath in /usr/local/lib/python3.11/dist-packages (from numpy->rouge-score) (0.1.1)\r\n",
+      "Requirement already satisfied: mkl in /usr/local/lib/python3.11/dist-packages (from numpy->rouge-score) (2025.1.0)\r\n",
+      "Requirement already satisfied: tbb4py in /usr/local/lib/python3.11/dist-packages (from numpy->rouge-score) (2022.1.0)\r\n",
+      "Requirement already satisfied: mkl-service in /usr/local/lib/python3.11/dist-packages (from numpy->rouge-score) (2.4.1)\r\n",
+      "Requirement already satisfied: intel-openmp<2026,>=2024 in /usr/local/lib/python3.11/dist-packages (from mkl->numpy->rouge-score) (2024.2.0)\r\n",
+      "Requirement already satisfied: tbb==2022.* in /usr/local/lib/python3.11/dist-packages (from mkl->numpy->rouge-score) (2022.1.0)\r\n",
+      "Requirement already satisfied: tcmlib==1.* in /usr/local/lib/python3.11/dist-packages (from tbb==2022.*->mkl->numpy->rouge-score) (1.2.0)\r\n",
+      "Requirement already satisfied: intel-cmplr-lib-rt in /usr/local/lib/python3.11/dist-packages (from mkl_umath->numpy->rouge-score) (2024.2.0)\r\n",
+      "Requirement already satisfied: intel-cmplr-lib-ur==2024.2.0 in /usr/local/lib/python3.11/dist-packages (from intel-openmp<2026,>=2024->mkl->numpy->rouge-score) (2024.2.0)\r\n",
+      "Building wheels for collected packages: rouge-score\r\n",
+      "  Building wheel for rouge-score (setup.py) ... \u001b[?25l\u001b[?25hdone\r\n",
+      "  Created wheel for rouge-score: filename=rouge_score-0.1.2-py3-none-any.whl size=24935 sha256=1cc238fe41c99c7400c627499df939cc255d6ed34780be644879783e6c426cb2\r\n",
+      "  Stored in directory: /root/.cache/pip/wheels/1e/19/43/8a442dc83660ca25e163e1bd1f89919284ab0d0c1475475148\r\n",
+      "Successfully built rouge-score\r\n",
+      "Installing collected packages: rouge-score\r\n",
+      "Successfully installed rouge-score-0.1.2\r\n",
+      "\u001b[31mERROR: Invalid requirement: 'openpyxl.': Expected end or semicolon (after name and no valid version specifier)\r\n",
+      "    openpyxl.\r\n",
+      "            ^\u001b[0m\u001b[31m\r\n",
+      "\u001b[0m"
+     ]
+    }
+   ],
+   "source": [
+    "!pip install transformers\n",
+    "!pip install kaggle\n",
+    "!pip install rouge-score\n",
+    "!pip install openpyxl."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "99e0dfb4",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:44:54.137097Z",
+     "iopub.status.busy": "2025-05-08T07:44:54.136421Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.479506Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.478866Z"
+    },
+    "id": "pHSOEfmcyo4-",
+    "papermill": {
+     "duration": 42.352243,
+     "end_time": "2025-05-08T07:45:36.480949",
+     "exception": false,
+     "start_time": "2025-05-08T07:44:54.128706",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-05-08 07:45:20.320673: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:477] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered\n",
+      "WARNING: All log messages before absl::InitializeLog() is called are written to STDERR\n",
+      "E0000 00:00:1746690320.725213      19 cuda_dnn.cc:8310] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered\n",
+      "E0000 00:00:1746690320.838117      19 cuda_blas.cc:1418] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered\n"
+     ]
+    }
+   ],
+   "source": [
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "import kagglehub\n",
+    "from kagglehub import KaggleDatasetAdapter\n",
+    "from google.colab import files\n",
+    "import os\n",
+    "import pathlib\n",
+    "import pandas as pd\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from transformers import BartTokenizer, BartForConditionalGeneration\n",
+    "import torch\n",
+    "from torch.utils.data import DataLoader, Dataset\n",
+    "from torch.optim import AdamW\n",
+    "from nltk.translate.bleu_score import sentence_bleu\n",
+    "from rouge_score import rouge_scorer"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "416f6594",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.496114Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.495616Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.499025Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.498435Z"
+    },
+    "id": "eInX82SgzRBh",
+    "papermill": {
+     "duration": 0.011885,
+     "end_time": "2025-05-08T07:45:36.500151",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.488266",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ! mkdir ~/.kaggle"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "ee72a627",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.513640Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.513426Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.516297Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.515721Z"
+    },
+    "id": "T7bC_IjTAuVP",
+    "papermill": {
+     "duration": 0.010891,
+     "end_time": "2025-05-08T07:45:36.517305",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.506414",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# !cp /content/drive/MyDrive/CollabData/kaggle_API/kaggle.json ~/.kaggle/kaggle.json"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "b197b37b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.531029Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.530805Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.533582Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.533077Z"
+    },
+    "id": "flupYIErA0Bn",
+    "papermill": {
+     "duration": 0.010626,
+     "end_time": "2025-05-08T07:45:36.534593",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.523967",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ! chmod 600 ~/.kaggle/kaggle.json"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "f182f803",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.547923Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.547707Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.550777Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.550135Z"
+    },
+    "id": "rEPMz_J9A0hB",
+    "papermill": {
+     "duration": 0.010856,
+     "end_time": "2025-05-08T07:45:36.551935",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.541079",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ! kaggle datasets download lazer999/quranic-reasoning-synthetic-dataset"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "41ec4602",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.565489Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.565094Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.567938Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.567374Z"
+    },
+    "id": "5dk2P-gDA3VD",
+    "papermill": {
+     "duration": 0.010661,
+     "end_time": "2025-05-08T07:45:36.568917",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.558256",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ! kaggle datasets download alizahidraja/quran-english"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "b3e0bb69",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.582976Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.582754Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.585562Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.585034Z"
+    },
+    "id": "OjUkNhzaA4mi",
+    "papermill": {
+     "duration": 0.011281,
+     "end_time": "2025-05-08T07:45:36.586529",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.575248",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ! unzip quranic-reasoning-synthetic-dataset.zip"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "a246b394",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.600285Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.600100Z",
+     "iopub.status.idle": "2025-05-08T07:45:36.602998Z",
+     "shell.execute_reply": "2025-05-08T07:45:36.602328Z"
+    },
+    "id": "9A_cbtuEA6U0",
+    "papermill": {
+     "duration": 0.010941,
+     "end_time": "2025-05-08T07:45:36.604066",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.593125",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "# ! unzip quran-english.zip"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d22750dc",
+   "metadata": {
+    "id": "V0ExrsVSAzk2",
+    "papermill": {
+     "duration": 0.006134,
+     "end_time": "2025-05-08T07:45:36.616574",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.610440",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Data Preparation"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "157ee141",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:36.630524Z",
+     "iopub.status.busy": "2025-05-08T07:45:36.630345Z",
+     "iopub.status.idle": "2025-05-08T07:45:37.425472Z",
+     "shell.execute_reply": "2025-05-08T07:45:37.424762Z"
+    },
+    "id": "rbgh4ZudA-p2",
+    "papermill": {
+     "duration": 0.803232,
+     "end_time": "2025-05-08T07:45:37.426611",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:36.623379",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Unnamed: 0</th>\n",
+       "      <th>Question</th>\n",
+       "      <th>Complex_CoT</th>\n",
+       "      <th>Response</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>What is the significance of patience (sabr) in...</td>\n",
+       "      <td>Patience (sabr) is a key virtue emphasized in ...</td>\n",
+       "      <td>The Quran highlights patience as a sign of str...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>Why do we have to pray five times a day? Would...</td>\n",
+       "      <td>The five daily prayers are a fundamental pilla...</td>\n",
+       "      <td>The five daily prayers maintain spiritual conn...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>2</td>\n",
+       "      <td>What does the Quran say about friendships? How...</td>\n",
+       "      <td>Friendship plays a crucial role in shaping a b...</td>\n",
+       "      <td>The Quran advises selecting righteous friends ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>3</td>\n",
+       "      <td>Why does the Quran emphasize so much on gratit...</td>\n",
+       "      <td>Gratitude (shukr) is vital in Islam as it fost...</td>\n",
+       "      <td>The Quran underscores gratitude, promising inc...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>4</td>\n",
+       "      <td>How should we deal with disagreements among si...</td>\n",
+       "      <td>The Quran encourages resolving sibling dispute...</td>\n",
+       "      <td>Sibling disagreements should be resolved with ...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   Unnamed: 0                                           Question  \\\n",
+       "0           0  What is the significance of patience (sabr) in...   \n",
+       "1           1  Why do we have to pray five times a day? Would...   \n",
+       "2           2  What does the Quran say about friendships? How...   \n",
+       "3           3  Why does the Quran emphasize so much on gratit...   \n",
+       "4           4  How should we deal with disagreements among si...   \n",
+       "\n",
+       "                                         Complex_CoT  \\\n",
+       "0  Patience (sabr) is a key virtue emphasized in ...   \n",
+       "1  The five daily prayers are a fundamental pilla...   \n",
+       "2  Friendship plays a crucial role in shaping a b...   \n",
+       "3  Gratitude (shukr) is vital in Islam as it fost...   \n",
+       "4  The Quran encourages resolving sibling dispute...   \n",
+       "\n",
+       "                                            Response  \n",
+       "0  The Quran highlights patience as a sign of str...  \n",
+       "1  The five daily prayers maintain spiritual conn...  \n",
+       "2  The Quran advises selecting righteous friends ...  \n",
+       "3  The Quran underscores gratitude, promising inc...  \n",
+       "4  Sibling disagreements should be resolved with ...  "
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "file_path = \"/kaggle/input/quranic-reasoning-synthetic-dataset/Quran_R1_excel.xlsx\"\n",
+    "df = pd.read_excel(file_path)\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "d900ceaa",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:37.441612Z",
+     "iopub.status.busy": "2025-05-08T07:45:37.441200Z",
+     "iopub.status.idle": "2025-05-08T07:45:37.470429Z",
+     "shell.execute_reply": "2025-05-08T07:45:37.469496Z"
+    },
+    "id": "mKPzx0BkBFaE",
+    "papermill": {
+     "duration": 0.037716,
+     "end_time": "2025-05-08T07:45:37.471451",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.433735",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 857 entries, 0 to 856\n",
+      "Data columns (total 4 columns):\n",
+      " #   Column       Non-Null Count  Dtype \n",
+      "---  ------       --------------  ----- \n",
+      " 0   Unnamed: 0   857 non-null    int64 \n",
+      " 1   Question     857 non-null    object\n",
+      " 2   Complex_CoT  857 non-null    object\n",
+      " 3   Response     857 non-null    object\n",
+      "dtypes: int64(1), object(3)\n",
+      "memory usage: 26.9+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "df.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d338df34",
+   "metadata": {
+    "id": "r4D18cypBJS6",
+    "papermill": {
+     "duration": 0.006421,
+     "end_time": "2025-05-08T07:45:37.484510",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.478089",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Column `Unnamed: 0` merupakan Column yang harus kita drop karena tidak berguna"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "c81cc912",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:37.546996Z",
+     "iopub.status.busy": "2025-05-08T07:45:37.546366Z",
+     "iopub.status.idle": "2025-05-08T07:45:37.558314Z",
+     "shell.execute_reply": "2025-05-08T07:45:37.557406Z"
+    },
+    "id": "i3TaQ63ABKqj",
+    "papermill": {
+     "duration": 0.067452,
+     "end_time": "2025-05-08T07:45:37.559517",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.492065",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 857 entries, 0 to 856\n",
+      "Data columns (total 3 columns):\n",
+      " #   Column       Non-Null Count  Dtype \n",
+      "---  ------       --------------  ----- \n",
+      " 0   Question     857 non-null    object\n",
+      " 1   Complex_CoT  857 non-null    object\n",
+      " 2   Response     857 non-null    object\n",
+      "dtypes: object(3)\n",
+      "memory usage: 20.2+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "df = df.drop(columns=['Unnamed: 0'])\n",
+    "df.head()\n",
+    "df.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f114c212",
+   "metadata": {
+    "id": "KnmWuXsdDIfv",
+    "papermill": {
+     "duration": 0.007059,
+     "end_time": "2025-05-08T07:45:37.574022",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.566963",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Let's go to the next data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "89378df2",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:37.589384Z",
+     "iopub.status.busy": "2025-05-08T07:45:37.589175Z",
+     "iopub.status.idle": "2025-05-08T07:45:37.713749Z",
+     "shell.execute_reply": "2025-05-08T07:45:37.713027Z"
+    },
+    "id": "cSjUyjt4DEAp",
+    "papermill": {
+     "duration": 0.133791,
+     "end_time": "2025-05-08T07:45:37.715105",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.581314",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Surah</th>\n",
+       "      <th>Ayat</th>\n",
+       "      <th>Verse</th>\n",
+       "      <th>Tafseer</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>In the name of Allah, the Beneficent, the Merc...</td>\n",
+       "      <td>In the Name of God the Compassionate the Merciful</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>Praise be to Allah, Lord of the Worlds,</td>\n",
+       "      <td>In the Name of God the name of a thing is that...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>The Beneficent, the Merciful.</td>\n",
+       "      <td>The Compassionate the Merciful that is to say ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>4</td>\n",
+       "      <td>Owner of the Day of Judgment,</td>\n",
+       "      <td>Master of the Day of Judgement that is the day...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>5</td>\n",
+       "      <td>Thee (alone) we worship; Thee (alone) we ask f...</td>\n",
+       "      <td>You alone we worship and You alone we ask for ...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          Name  Surah  Ayat  \\\n",
+       "0  The Opening      1     1   \n",
+       "1  The Opening      1     2   \n",
+       "2  The Opening      1     3   \n",
+       "3  The Opening      1     4   \n",
+       "4  The Opening      1     5   \n",
+       "\n",
+       "                                               Verse  \\\n",
+       "0  In the name of Allah, the Beneficent, the Merc...   \n",
+       "1            Praise be to Allah, Lord of the Worlds,   \n",
+       "2                      The Beneficent, the Merciful.   \n",
+       "3                      Owner of the Day of Judgment,   \n",
+       "4  Thee (alone) we worship; Thee (alone) we ask f...   \n",
+       "\n",
+       "                                             Tafseer  \n",
+       "0  In the Name of God the Compassionate the Merciful  \n",
+       "1  In the Name of God the name of a thing is that...  \n",
+       "2  The Compassionate the Merciful that is to say ...  \n",
+       "3  Master of the Day of Judgement that is the day...  \n",
+       "4  You alone we worship and You alone we ask for ...  "
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "file_path = \"/kaggle/input/quran-english/Quran_English_with_Tafseer.csv\"\n",
+    "df_quran = pd.read_csv(file_path)\n",
+    "df_quran.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "892906a0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:37.731770Z",
+     "iopub.status.busy": "2025-05-08T07:45:37.731362Z",
+     "iopub.status.idle": "2025-05-08T07:45:37.741259Z",
+     "shell.execute_reply": "2025-05-08T07:45:37.740472Z"
+    },
+    "id": "GQFLWwrKDHsM",
+    "papermill": {
+     "duration": 0.018845,
+     "end_time": "2025-05-08T07:45:37.742421",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.723576",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 6236 entries, 0 to 6235\n",
+      "Data columns (total 5 columns):\n",
+      " #   Column   Non-Null Count  Dtype \n",
+      "---  ------   --------------  ----- \n",
+      " 0   Name     6236 non-null   object\n",
+      " 1   Surah    6236 non-null   int64 \n",
+      " 2   Ayat     6236 non-null   int64 \n",
+      " 3   Verse    6236 non-null   object\n",
+      " 4   Tafseer  6235 non-null   object\n",
+      "dtypes: int64(2), object(3)\n",
+      "memory usage: 243.7+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "df_quran.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "dd6e38e3",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:37.757918Z",
+     "iopub.status.busy": "2025-05-08T07:45:37.757480Z",
+     "iopub.status.idle": "2025-05-08T07:45:37.768432Z",
+     "shell.execute_reply": "2025-05-08T07:45:37.767867Z"
+    },
+    "id": "uevAeSUzDNAy",
+    "papermill": {
+     "duration": 0.019829,
+     "end_time": "2025-05-08T07:45:37.769443",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.749614",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Surah</th>\n",
+       "      <th>Ayat</th>\n",
+       "      <th>Verse</th>\n",
+       "      <th>Tafseer</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>4555</th>\n",
+       "      <td>Muhammad</td>\n",
+       "      <td>47</td>\n",
+       "      <td>11</td>\n",
+       "      <td>That is because Allah is patron of those who b...</td>\n",
+       "      <td>NaN</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          Name  Surah  Ayat  \\\n",
+       "4555  Muhammad     47    11   \n",
+       "\n",
+       "                                                  Verse Tafseer  \n",
+       "4555  That is because Allah is patron of those who b...     NaN  "
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "display(df_quran[df_quran['Tafseer'].isnull()])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "30de6e0c",
+   "metadata": {
+    "id": "C54qhQS2DUN4",
+    "papermill": {
+     "duration": 0.007059,
+     "end_time": "2025-05-08T07:45:37.783540",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.776481",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Ada satu data yang tidak memiliki tafsir kosong, dalam hal ini kita akan isi data kosong ini dengan data sintetis"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "7e00e333",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:37.798227Z",
+     "iopub.status.busy": "2025-05-08T07:45:37.798038Z",
+     "iopub.status.idle": "2025-05-08T07:45:37.804755Z",
+     "shell.execute_reply": "2025-05-08T07:45:37.804072Z"
+    },
+    "id": "MJrF2jNzDUvv",
+    "papermill": {
+     "duration": 0.015466,
+     "end_time": "2025-05-08T07:45:37.805948",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.790482",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Empty DataFrame\n",
+      "Columns: [Name, Surah, Ayat, Verse, Tafseer]\n",
+      "Index: []\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Fill empty 'Tafseer' values with a synthetic data\n",
+    "df_quran['Tafseer'] = df_quran['Tafseer'].fillna(\"This surah emphasizes that Allah is the protector and ally (Mawlā) of those who believe, offering them divine support, guidance, and victory, while the disbelievers are left without any true protector. This verse reassures the believers that despite external challenges or opposition, they are never alone—Allah stands by them in both worldly and spiritual affairs. Conversely, disbelievers, no matter their apparent power or alliances, lack divine backing and are ultimately vulnerable. Revealed in the context of struggle between faith and disbelief, particularly in times of conflict, this verse highlights the importance of trusting in Allah, as real strength and success come through His support, not mere worldly means.\")\n",
+    "print(df_quran[df_quran['Tafseer'].isnull()])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "eb3a925b",
+   "metadata": {
+    "papermill": {
+     "duration": 0.0074,
+     "end_time": "2025-05-08T07:45:37.820218",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.812818",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Next, mari kita expand data kita dengan menggunakan Tafsir dari berbagai perawi"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "27844295",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:37.834814Z",
+     "iopub.status.busy": "2025-05-08T07:45:37.834633Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.097747Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.096843Z"
+    },
+    "papermill": {
+     "duration": 0.27191,
+     "end_time": "2025-05-08T07:45:38.099065",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:37.827155",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Surah</th>\n",
+       "      <th>Ayat</th>\n",
+       "      <th>Arabic</th>\n",
+       "      <th>Translation - Muhammad Tahir-ul-Qadri</th>\n",
+       "      <th>Translation - Arthur J</th>\n",
+       "      <th>Translation - Marmaduke Pickthall</th>\n",
+       "      <th>Tafaseer - Tafsir al-Jalalayn</th>\n",
+       "      <th>Tafaseer - Tanwir al-Miqbas min Tafsir Ibn Abbas</th>\n",
+       "      <th>EnglishTitle</th>\n",
+       "      <th>ArabicTitle</th>\n",
+       "      <th>RomanTitle</th>\n",
+       "      <th>NumberOfVerses</th>\n",
+       "      <th>NumberOfRukus</th>\n",
+       "      <th>PlaceOfRevelation</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>بِسمِ ٱلله الرَّحْمٰنِ الرَّحِيـمِ</td>\n",
+       "      <td>All praise be to Allah alone, the Sustainer of...</td>\n",
+       "      <td>In the Name of God, the Merciful, the Compassi...</td>\n",
+       "      <td>In the name of Allah, the Beneficent, the Merc...</td>\n",
+       "      <td>In the Name of God the Compassionate the Merciful</td>\n",
+       "      <td>In the name of Allah, the Beneficent, the Merc...</td>\n",
+       "      <td>Al-Fatihah</td>\n",
+       "      <td>ٱلْفَاتِحَة</td>\n",
+       "      <td>al-Ḥamd</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Makkah</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>ٱلْحَمْدُ للَّهِ رَبِّ ٱلْعَالَمِينَ</td>\n",
+       "      <td>Most Compassionate, Ever-Merciful,</td>\n",
+       "      <td>Praise belongs to God, the Lord of all Being,</td>\n",
+       "      <td>Praise be to Allah, Lord of the Worlds,</td>\n",
+       "      <td>In the Name of God the name of a thing is that...</td>\n",
+       "      <td>And on his authority it is related that Ibn 'A...</td>\n",
+       "      <td>Al-Fatihah</td>\n",
+       "      <td>ٱلْفَاتِحَة</td>\n",
+       "      <td>al-Ḥamd</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Makkah</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>ٱلرَّحْمـٰنِ ٱلرَّحِيمِ</td>\n",
+       "      <td>Master of the Day of Judgment.</td>\n",
+       "      <td>the All-merciful, the All-compassionate,</td>\n",
+       "      <td>The Beneficent, the Merciful.</td>\n",
+       "      <td>The Compassionate the Merciful that is to say ...</td>\n",
+       "      <td>(The Beneficent) the Gentle. (The Merciful) th...</td>\n",
+       "      <td>Al-Fatihah</td>\n",
+       "      <td>ٱلْفَاتِحَة</td>\n",
+       "      <td>al-Ḥamd</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Makkah</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>4</td>\n",
+       "      <td>مَـٰلِكِ يَوْمِ ٱلدِّينِ</td>\n",
+       "      <td>(O Allah!) You alone do we worship and to You ...</td>\n",
+       "      <td>the Master of the Day of Doom.</td>\n",
+       "      <td>Owner of the Day of Judgment,</td>\n",
+       "      <td>Master of the Day of Judgement that is the day...</td>\n",
+       "      <td>(Owner of the Day of Judgement) the Arbitrator...</td>\n",
+       "      <td>Al-Fatihah</td>\n",
+       "      <td>ٱلْفَاتِحَة</td>\n",
+       "      <td>al-Ḥamd</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Makkah</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>The Opening</td>\n",
+       "      <td>1</td>\n",
+       "      <td>5</td>\n",
+       "      <td>إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ</td>\n",
+       "      <td>Show us the straight path,</td>\n",
+       "      <td>Thee only we serve; to Thee alone we pray for ...</td>\n",
+       "      <td>Thee (alone) we worship; Thee (alone) we ask f...</td>\n",
+       "      <td>You alone we worship and You alone we ask for ...</td>\n",
+       "      <td>(Thee (alone) we worship), we turn to you as t...</td>\n",
+       "      <td>Al-Fatihah</td>\n",
+       "      <td>ٱلْفَاتِحَة</td>\n",
+       "      <td>al-Ḥamd</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Makkah</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "          Name  Surah  Ayat                                    Arabic  \\\n",
+       "0  The Opening      1     1        بِسمِ ٱلله الرَّحْمٰنِ الرَّحِيـمِ   \n",
+       "1  The Opening      1     2      ٱلْحَمْدُ للَّهِ رَبِّ ٱلْعَالَمِينَ   \n",
+       "2  The Opening      1     3                   ٱلرَّحْمـٰنِ ٱلرَّحِيمِ   \n",
+       "3  The Opening      1     4                  مَـٰلِكِ يَوْمِ ٱلدِّينِ   \n",
+       "4  The Opening      1     5  إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ   \n",
+       "\n",
+       "               Translation - Muhammad Tahir-ul-Qadri  \\\n",
+       "0  All praise be to Allah alone, the Sustainer of...   \n",
+       "1                 Most Compassionate, Ever-Merciful,   \n",
+       "2                     Master of the Day of Judgment.   \n",
+       "3  (O Allah!) You alone do we worship and to You ...   \n",
+       "4                         Show us the straight path,   \n",
+       "\n",
+       "                              Translation - Arthur J  \\\n",
+       "0  In the Name of God, the Merciful, the Compassi...   \n",
+       "1      Praise belongs to God, the Lord of all Being,   \n",
+       "2           the All-merciful, the All-compassionate,   \n",
+       "3                     the Master of the Day of Doom.   \n",
+       "4  Thee only we serve; to Thee alone we pray for ...   \n",
+       "\n",
+       "                   Translation - Marmaduke Pickthall  \\\n",
+       "0  In the name of Allah, the Beneficent, the Merc...   \n",
+       "1            Praise be to Allah, Lord of the Worlds,   \n",
+       "2                      The Beneficent, the Merciful.   \n",
+       "3                      Owner of the Day of Judgment,   \n",
+       "4  Thee (alone) we worship; Thee (alone) we ask f...   \n",
+       "\n",
+       "                       Tafaseer - Tafsir al-Jalalayn  \\\n",
+       "0  In the Name of God the Compassionate the Merciful   \n",
+       "1  In the Name of God the name of a thing is that...   \n",
+       "2  The Compassionate the Merciful that is to say ...   \n",
+       "3  Master of the Day of Judgement that is the day...   \n",
+       "4  You alone we worship and You alone we ask for ...   \n",
+       "\n",
+       "    Tafaseer - Tanwir al-Miqbas min Tafsir Ibn Abbas EnglishTitle  \\\n",
+       "0  In the name of Allah, the Beneficent, the Merc...   Al-Fatihah   \n",
+       "1  And on his authority it is related that Ibn 'A...   Al-Fatihah   \n",
+       "2  (The Beneficent) the Gentle. (The Merciful) th...   Al-Fatihah   \n",
+       "3  (Owner of the Day of Judgement) the Arbitrator...   Al-Fatihah   \n",
+       "4  (Thee (alone) we worship), we turn to you as t...   Al-Fatihah   \n",
+       "\n",
+       "   ArabicTitle RomanTitle  NumberOfVerses NumberOfRukus PlaceOfRevelation  \n",
+       "0  ٱلْفَاتِحَة    al-Ḥamd               7             1            Makkah  \n",
+       "1  ٱلْفَاتِحَة    al-Ḥamd               7             1            Makkah  \n",
+       "2  ٱلْفَاتِحَة    al-Ḥamd               7             1            Makkah  \n",
+       "3  ٱلْفَاتِحَة    al-Ḥamd               7             1            Makkah  \n",
+       "4  ٱلْفَاتِحَة    al-Ḥamd               7             1            Makkah  "
+      ]
+     },
+     "execution_count": 17,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "file_path = \"/kaggle/input/quran-nlp/data/main_df.csv\"\n",
+    "df_tafseer = pd.read_csv(file_path)\n",
+    "df_tafseer.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "4dfd8c9e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.115346Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.115103Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.128000Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.127003Z"
+    },
+    "papermill": {
+     "duration": 0.022403,
+     "end_time": "2025-05-08T07:45:38.129233",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.106830",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 6236 entries, 0 to 6235\n",
+      "Data columns (total 15 columns):\n",
+      " #   Column                                            Non-Null Count  Dtype \n",
+      "---  ------                                            --------------  ----- \n",
+      " 0   Name                                              6236 non-null   object\n",
+      " 1   Surah                                             6236 non-null   int64 \n",
+      " 2   Ayat                                              6236 non-null   int64 \n",
+      " 3   Arabic                                            6236 non-null   object\n",
+      " 4   Translation - Muhammad Tahir-ul-Qadri             6236 non-null   object\n",
+      " 5   Translation - Arthur J                            6236 non-null   object\n",
+      " 6   Translation - Marmaduke Pickthall                 6236 non-null   object\n",
+      " 7   Tafaseer - Tafsir al-Jalalayn                     6236 non-null   object\n",
+      " 8   Tafaseer - Tanwir al-Miqbas min Tafsir Ibn Abbas  6236 non-null   object\n",
+      " 9   EnglishTitle                                      6236 non-null   object\n",
+      " 10  ArabicTitle                                       6236 non-null   object\n",
+      " 11  RomanTitle                                        6236 non-null   object\n",
+      " 12  NumberOfVerses                                    6236 non-null   int64 \n",
+      " 13  NumberOfRukus                                     6224 non-null   object\n",
+      " 14  PlaceOfRevelation                                 6236 non-null   object\n",
+      "dtypes: int64(3), object(12)\n",
+      "memory usage: 730.9+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "df_tafseer.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "e1796c17",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.146013Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.145758Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.159803Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.158882Z"
+    },
+    "papermill": {
+     "duration": 0.023694,
+     "end_time": "2025-05-08T07:45:38.161176",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.137482",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 6236 entries, 0 to 6235\n",
+      "Data columns (total 12 columns):\n",
+      " #   Column                                            Non-Null Count  Dtype \n",
+      "---  ------                                            --------------  ----- \n",
+      " 0   Name                                              6236 non-null   object\n",
+      " 1   Surah                                             6236 non-null   int64 \n",
+      " 2   Ayat                                              6236 non-null   int64 \n",
+      " 3   Arabic                                            6236 non-null   object\n",
+      " 4   Translation - Muhammad Tahir-ul-Qadri             6236 non-null   object\n",
+      " 5   Tafaseer - Tafsir al-Jalalayn                     6236 non-null   object\n",
+      " 6   Tafaseer - Tanwir al-Miqbas min Tafsir Ibn Abbas  6236 non-null   object\n",
+      " 7   EnglishTitle                                      6236 non-null   object\n",
+      " 8   ArabicTitle                                       6236 non-null   object\n",
+      " 9   RomanTitle                                        6236 non-null   object\n",
+      " 10  NumberOfVerses                                    6236 non-null   int64 \n",
+      " 11  PlaceOfRevelation                                 6236 non-null   object\n",
+      "dtypes: int64(3), object(9)\n",
+      "memory usage: 584.8+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "columns_to_drop = ['Translation - Arthur J', 'Translation - Marmaduke Pickthall', 'NumberOfRukus']\n",
+    "df_tafseer = df_tafseer.drop(columns=[col for col in columns_to_drop if col in df_tafseer.columns])\n",
+    "df_tafseer.info()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ef9fb35d",
+   "metadata": {
+    "papermill": {
+     "duration": 0.007697,
+     "end_time": "2025-05-08T07:45:38.177669",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.169972",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Lanjut ke tahap selanjutnya"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0b3416cc",
+   "metadata": {
+    "id": "ca4WS2ykDdSx",
+    "papermill": {
+     "duration": 0.007823,
+     "end_time": "2025-05-08T07:45:38.193299",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.185476",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "### Data Merging"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "e55514f7",
+   "metadata": {
+    "id": "NOMdJY8qDf0z",
+    "papermill": {
+     "duration": 0.007422,
+     "end_time": "2025-05-08T07:45:38.208603",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.201181",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Sebelum kita develop modelnya, dataset `df_quran`, `df_tafseer`, `df_hadith` dan `df_tafseer` akan digabung dengan format Kolom `Question` dan `Respoonse`"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "aea6e85a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.224727Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.224539Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.250034Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.249343Z"
+    },
+    "id": "D3UxmNq7Deq_",
+    "papermill": {
+     "duration": 0.035088,
+     "end_time": "2025-05-08T07:45:38.251275",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.216187",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Question</th>\n",
+       "      <th>Response</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>What is the meaning of Surah 1:1?</td>\n",
+       "      <td>In the Name of God the Compassionate the Merciful</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>What is the meaning of Surah 1:2?</td>\n",
+       "      <td>In the Name of God the name of a thing is that...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>What is the meaning of Surah 1:3?</td>\n",
+       "      <td>The Compassionate the Merciful that is to say ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>What is the meaning of Surah 1:4?</td>\n",
+       "      <td>Master of the Day of Judgement that is the day...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>What is the meaning of Surah 1:5?</td>\n",
+       "      <td>You alone we worship and You alone we ask for ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12467</th>\n",
+       "      <td>What is the meaning of Surah Mankind:2?</td>\n",
+       "      <td>the King of mankind</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12468</th>\n",
+       "      <td>What is the meaning of Surah Mankind:3?</td>\n",
+       "      <td>the God of mankind both maliki’l-nās and ilāhi...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12469</th>\n",
+       "      <td>What is the meaning of Surah Mankind:4?</td>\n",
+       "      <td>from the evil of the slinking whisperer Satan ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12470</th>\n",
+       "      <td>What is the meaning of Surah Mankind:5?</td>\n",
+       "      <td>who whispers in the breasts of mankind in thei...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12471</th>\n",
+       "      <td>What is the meaning of Surah Mankind:6?</td>\n",
+       "      <td>of the jinn and mankind’ mina’l-jinnati wa’l-n...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>12472 rows × 2 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                      Question  \\\n",
+       "0            What is the meaning of Surah 1:1?   \n",
+       "1            What is the meaning of Surah 1:2?   \n",
+       "2            What is the meaning of Surah 1:3?   \n",
+       "3            What is the meaning of Surah 1:4?   \n",
+       "4            What is the meaning of Surah 1:5?   \n",
+       "...                                        ...   \n",
+       "12467  What is the meaning of Surah Mankind:2?   \n",
+       "12468  What is the meaning of Surah Mankind:3?   \n",
+       "12469  What is the meaning of Surah Mankind:4?   \n",
+       "12470  What is the meaning of Surah Mankind:5?   \n",
+       "12471  What is the meaning of Surah Mankind:6?   \n",
+       "\n",
+       "                                                Response  \n",
+       "0      In the Name of God the Compassionate the Merciful  \n",
+       "1      In the Name of God the name of a thing is that...  \n",
+       "2      The Compassionate the Merciful that is to say ...  \n",
+       "3      Master of the Day of Judgement that is the day...  \n",
+       "4      You alone we worship and You alone we ask for ...  \n",
+       "...                                                  ...  \n",
+       "12467                                the King of mankind  \n",
+       "12468  the God of mankind both maliki’l-nās and ilāhi...  \n",
+       "12469  from the evil of the slinking whisperer Satan ...  \n",
+       "12470  who whispers in the breasts of mankind in thei...  \n",
+       "12471  of the jinn and mankind’ mina’l-jinnati wa’l-n...  \n",
+       "\n",
+       "[12472 rows x 2 columns]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# Create the first template\n",
+    "df_quran['Question'] = \"What is the meaning of Surah \" + df_quran['Surah'].astype(str) + \":\" + df_quran['Ayat'].astype(str) + \"?\"\n",
+    "df_quran['Response'] = df_quran['Tafseer']\n",
+    "\n",
+    "# Create the second template and append it to the first dataframe\n",
+    "df_quran_2 = pd.DataFrame()\n",
+    "df_quran_2['Question'] = \"What is the meaning of Surah \" + df_quran['Name'] + \":\" + df_quran['Ayat'].astype(str) + \"?\"\n",
+    "df_quran_2['Response'] = df_quran['Tafseer']\n",
+    "\n",
+    "df_quran = pd.concat([df_quran, df_quran_2], ignore_index=True)\n",
+    "\n",
+    "# Select only the relevant columns for merging\n",
+    "df_quran = df_quran[['Question', 'Response']]\n",
+    "\n",
+    "display(df_quran)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "d5ba1b53",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.268334Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.268154Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.283678Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.283104Z"
+    },
+    "papermill": {
+     "duration": 0.025031,
+     "end_time": "2025-05-08T07:45:38.284758",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.259727",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Question</th>\n",
+       "      <th>Response</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Where was Surah The Opening, verse 1 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Where was Surah The Opening, verse 2 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Where was Surah The Opening, verse 3 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Where was Surah The Opening, verse 4 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Where was Surah The Opening, verse 5 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6231</th>\n",
+       "      <td>Where was Surah Mankind, verse 2 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6232</th>\n",
+       "      <td>Where was Surah Mankind, verse 3 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6233</th>\n",
+       "      <td>Where was Surah Mankind, verse 4 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6234</th>\n",
+       "      <td>Where was Surah Mankind, verse 5 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6235</th>\n",
+       "      <td>Where was Surah Mankind, verse 6 revealed?</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>6236 rows × 2 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                            Question  \\\n",
+       "0     Where was Surah The Opening, verse 1 revealed?   \n",
+       "1     Where was Surah The Opening, verse 2 revealed?   \n",
+       "2     Where was Surah The Opening, verse 3 revealed?   \n",
+       "3     Where was Surah The Opening, verse 4 revealed?   \n",
+       "4     Where was Surah The Opening, verse 5 revealed?   \n",
+       "...                                              ...   \n",
+       "6231      Where was Surah Mankind, verse 2 revealed?   \n",
+       "6232      Where was Surah Mankind, verse 3 revealed?   \n",
+       "6233      Where was Surah Mankind, verse 4 revealed?   \n",
+       "6234      Where was Surah Mankind, verse 5 revealed?   \n",
+       "6235      Where was Surah Mankind, verse 6 revealed?   \n",
+       "\n",
+       "                        Response  \n",
+       "0     It was revealed in Makkah.  \n",
+       "1     It was revealed in Makkah.  \n",
+       "2     It was revealed in Makkah.  \n",
+       "3     It was revealed in Makkah.  \n",
+       "4     It was revealed in Makkah.  \n",
+       "...                          ...  \n",
+       "6231  It was revealed in Makkah.  \n",
+       "6232  It was revealed in Makkah.  \n",
+       "6233  It was revealed in Makkah.  \n",
+       "6234  It was revealed in Makkah.  \n",
+       "6235  It was revealed in Makkah.  \n",
+       "\n",
+       "[6236 rows x 2 columns]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# Rename long tafsir columns for convenience\n",
+    "df_tafseer = df_tafseer.rename(columns={\n",
+    "    'Tafaseer - Tafsir al-Jalalayn': 'Tafsir_Jalalayn',\n",
+    "    'Tafaseer - Tanwir al-Miqbas min Tafsir Ibn Abbas': 'Tafsir_IbnAbbas'\n",
+    "})\n",
+    "\n",
+    "# Template 1 – Asking for place of revelation only\n",
+    "df1 = pd.DataFrame()\n",
+    "df1['Question'] = \"Where was Surah \" + df_tafseer['Name'] + \", verse \" + df_tafseer['Ayat'].astype(str) + \" revealed?\"\n",
+    "df1['Response'] = \"It was revealed in \" + df_tafseer['PlaceOfRevelation'] + \".\"\n",
+    "\n",
+    "# --- Combine all templates into one dataframe ---\n",
+    "df_tafseer = pd.concat([df1], ignore_index=True)\n",
+    "\n",
+    "# --- Select only relevant columns ---\n",
+    "df_tafseer = df_tafseer[['Question', 'Response']]\n",
+    "\n",
+    "display(df_tafseer)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "96267c7e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.301715Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.301538Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.310783Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.310094Z"
+    },
+    "papermill": {
+     "duration": 0.018653,
+     "end_time": "2025-05-08T07:45:38.311861",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.293208",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Question</th>\n",
+       "      <th>Complex_CoT</th>\n",
+       "      <th>Response</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>What is the significance of patience (sabr) in...</td>\n",
+       "      <td>Patience (sabr) is a key virtue emphasized in ...</td>\n",
+       "      <td>The Quran highlights patience as a sign of str...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Why do we have to pray five times a day? Would...</td>\n",
+       "      <td>The five daily prayers are a fundamental pilla...</td>\n",
+       "      <td>The five daily prayers maintain spiritual conn...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>What does the Quran say about friendships? How...</td>\n",
+       "      <td>Friendship plays a crucial role in shaping a b...</td>\n",
+       "      <td>The Quran advises selecting righteous friends ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Why does the Quran emphasize so much on gratit...</td>\n",
+       "      <td>Gratitude (shukr) is vital in Islam as it fost...</td>\n",
+       "      <td>The Quran underscores gratitude, promising inc...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>How should we deal with disagreements among si...</td>\n",
+       "      <td>The Quran encourages resolving sibling dispute...</td>\n",
+       "      <td>Sibling disagreements should be resolved with ...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19560</th>\n",
+       "      <td>Where was Surah Mankind, verse 2 revealed?</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19561</th>\n",
+       "      <td>Where was Surah Mankind, verse 3 revealed?</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19562</th>\n",
+       "      <td>Where was Surah Mankind, verse 4 revealed?</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19563</th>\n",
+       "      <td>Where was Surah Mankind, verse 5 revealed?</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19564</th>\n",
+       "      <td>Where was Surah Mankind, verse 6 revealed?</td>\n",
+       "      <td>NaN</td>\n",
+       "      <td>It was revealed in Makkah.</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>19565 rows × 3 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                                Question  \\\n",
+       "0      What is the significance of patience (sabr) in...   \n",
+       "1      Why do we have to pray five times a day? Would...   \n",
+       "2      What does the Quran say about friendships? How...   \n",
+       "3      Why does the Quran emphasize so much on gratit...   \n",
+       "4      How should we deal with disagreements among si...   \n",
+       "...                                                  ...   \n",
+       "19560         Where was Surah Mankind, verse 2 revealed?   \n",
+       "19561         Where was Surah Mankind, verse 3 revealed?   \n",
+       "19562         Where was Surah Mankind, verse 4 revealed?   \n",
+       "19563         Where was Surah Mankind, verse 5 revealed?   \n",
+       "19564         Where was Surah Mankind, verse 6 revealed?   \n",
+       "\n",
+       "                                             Complex_CoT  \\\n",
+       "0      Patience (sabr) is a key virtue emphasized in ...   \n",
+       "1      The five daily prayers are a fundamental pilla...   \n",
+       "2      Friendship plays a crucial role in shaping a b...   \n",
+       "3      Gratitude (shukr) is vital in Islam as it fost...   \n",
+       "4      The Quran encourages resolving sibling dispute...   \n",
+       "...                                                  ...   \n",
+       "19560                                                NaN   \n",
+       "19561                                                NaN   \n",
+       "19562                                                NaN   \n",
+       "19563                                                NaN   \n",
+       "19564                                                NaN   \n",
+       "\n",
+       "                                                Response  \n",
+       "0      The Quran highlights patience as a sign of str...  \n",
+       "1      The five daily prayers maintain spiritual conn...  \n",
+       "2      The Quran advises selecting righteous friends ...  \n",
+       "3      The Quran underscores gratitude, promising inc...  \n",
+       "4      Sibling disagreements should be resolved with ...  \n",
+       "...                                                  ...  \n",
+       "19560                         It was revealed in Makkah.  \n",
+       "19561                         It was revealed in Makkah.  \n",
+       "19562                         It was revealed in Makkah.  \n",
+       "19563                         It was revealed in Makkah.  \n",
+       "19564                         It was revealed in Makkah.  \n",
+       "\n",
+       "[19565 rows x 3 columns]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# --- Concatenate with other QnA datasets ---\n",
+    "merged_df = pd.concat([df, df_quran, df_tafseer], ignore_index=True)\n",
+    "\n",
+    "# Optional: Preview the result\n",
+    "display(merged_df)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5c916f8f",
+   "metadata": {
+    "id": "5EoP4LahNCp-",
+    "papermill": {
+     "duration": 0.009052,
+     "end_time": "2025-05-08T07:45:38.329052",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.320000",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Model Development\n",
+    "\n",
+    "Kita akan menggunakan model T5, cek penjelasan Transformer [disini](https://medium.com/@gagangupta_82781/understanding-the-t5-model-a-comprehensive-guide-b4d5c02c234b)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "96157bea",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.346163Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.345951Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.350019Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.349302Z"
+    },
+    "id": "qbq9tkIjNEJO",
+    "papermill": {
+     "duration": 0.014285,
+     "end_time": "2025-05-08T07:45:38.351245",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.336960",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "inputt=merged_df['Question'].tolist()\n",
+    "labelt=merged_df['Response'].tolist()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "85fb435f",
+   "metadata": {
+    "id": "rz92pm-xNcRa",
+    "papermill": {
+     "duration": 0.007588,
+     "end_time": "2025-05-08T07:45:38.366906",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.359318",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Split Train-Test (Dalam hal ini kita akan pisah 9:1, dan kita hanya akan mengambil data dari `df` saja)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "3262eb20",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.383289Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.383115Z",
+     "iopub.status.idle": "2025-05-08T07:45:38.392037Z",
+     "shell.execute_reply": "2025-05-08T07:45:38.391548Z"
+    },
+    "id": "WcaPGE3ANYMc",
+    "papermill": {
+     "duration": 0.018428,
+     "end_time": "2025-05-08T07:45:38.393090",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.374662",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "train_inputs, test_inputs, train_labels, test_labels = train_test_split(inputt, labelt, test_size=0.1, random_state=42)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "15c7e47d",
+   "metadata": {
+    "id": "lteGKYh4OBN9",
+    "papermill": {
+     "duration": 0.008042,
+     "end_time": "2025-05-08T07:45:38.410346",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.402304",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Mari kita Panggil Tokenizer dan Pre-Model yang akan kita pakai, dalam hal ini T5"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "909172d0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:38.426580Z",
+     "iopub.status.busy": "2025-05-08T07:45:38.426405Z",
+     "iopub.status.idle": "2025-05-08T07:45:42.155537Z",
+     "shell.execute_reply": "2025-05-08T07:45:42.154516Z"
+    },
+    "id": "ARjHP3O3OGzw",
+    "papermill": {
+     "duration": 3.739217,
+     "end_time": "2025-05-08T07:45:42.157242",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:38.418025",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "ceadab54054044bca5436bd773049f64",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "vocab.json:   0%|          | 0.00/899k [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "2caa9f5584724e3b959c2d5551810dab",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "merges.txt:   0%|          | 0.00/456k [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "ff076aed60a244ec88f8a5ea37f9067d",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "tokenizer.json:   0%|          | 0.00/1.36M [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "c48d824c344d438181caafd9eb024b7d",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "config.json:   0%|          | 0.00/1.72k [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "61f9a7bbbbea48a6929978bcce9fb2fc",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "model.safetensors:   0%|          | 0.00/558M [00:00<?, ?B/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')\n",
+    "model = BartForConditionalGeneration.from_pretrained('facebook/bart-base')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "57d6d4ec",
+   "metadata": {
+    "id": "lOe6a3hbVjo5",
+    "papermill": {
+     "duration": 0.008445,
+     "end_time": "2025-05-08T07:45:42.175593",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:42.167148",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Sebelum melatih model, mari kita tokenisasi data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "b65b8d4e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:42.192738Z",
+     "iopub.status.busy": "2025-05-08T07:45:42.192519Z",
+     "iopub.status.idle": "2025-05-08T07:45:54.077752Z",
+     "shell.execute_reply": "2025-05-08T07:45:54.077182Z"
+    },
+    "id": "dQt9c-r0Vj-C",
+    "papermill": {
+     "duration": 11.895546,
+     "end_time": "2025-05-08T07:45:54.079169",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:42.183623",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "def tokenize_data(inputs, labels, tokenizer, max_length=128):\n",
+    "    input_encodings = tokenizer(\n",
+    "        list(inputs), max_length=max_length, padding=True, truncation=True, return_tensors=\"pt\"\n",
+    "    )\n",
+    "    label_encodings = tokenizer(\n",
+    "        list(labels), max_length=max_length, padding=True, truncation=True, return_tensors=\"pt\"\n",
+    "    )\n",
+    "    return input_encodings, label_encodings\n",
+    "\n",
+    "train_inputs_enc, train_labels_enc = tokenize_data(train_inputs, train_labels, tokenizer)\n",
+    "test_inputs_enc, test_labels_enc = tokenize_data(test_inputs, test_labels, tokenizer)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "113cf1c0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:54.097327Z",
+     "iopub.status.busy": "2025-05-08T07:45:54.097069Z",
+     "iopub.status.idle": "2025-05-08T07:45:54.102150Z",
+     "shell.execute_reply": "2025-05-08T07:45:54.101435Z"
+    },
+    "id": "Mrp_MsIYV5Zd",
+    "papermill": {
+     "duration": 0.015166,
+     "end_time": "2025-05-08T07:45:54.103356",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:54.088190",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "class CustomDataset(Dataset):\n",
+    "    def __init__(self, encodings, labels):\n",
+    "        self.encodings = encodings\n",
+    "        self.labels = labels\n",
+    "\n",
+    "    def __len__(self):\n",
+    "        return len(self.labels[\"input_ids\"])\n",
+    "\n",
+    "    def __getitem__(self, idx):\n",
+    "        return {\n",
+    "            \"input_ids\": self.encodings[\"input_ids\"][idx],\n",
+    "            \"attention_mask\": self.encodings[\"attention_mask\"][idx],\n",
+    "            \"labels\": self.labels[\"input_ids\"][idx],\n",
+    "        }\n",
+    "\n",
+    "train_dataset = CustomDataset(train_inputs_enc, train_labels_enc)\n",
+    "test_dataset = CustomDataset(test_inputs_enc, test_labels_enc)\n",
+    "\n",
+    "train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)\n",
+    "test_loader = DataLoader(test_dataset, batch_size=8)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ed023764",
+   "metadata": {
+    "id": "GJIoQQ66V8GN",
+    "papermill": {
+     "duration": 0.00802,
+     "end_time": "2025-05-08T07:45:54.119938",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:54.111918",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "Mari kita train model kita kali ini serta menggunakan Optimizer untuk meningkatkan Akurasi model!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "c24dbb5e",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T07:45:54.137071Z",
+     "iopub.status.busy": "2025-05-08T07:45:54.136870Z",
+     "iopub.status.idle": "2025-05-08T12:59:19.067963Z",
+     "shell.execute_reply": "2025-05-08T12:59:19.067151Z"
+    },
+    "id": "TBmP_oy6V54_",
+    "papermill": {
+     "duration": 18804.951835,
+     "end_time": "2025-05-08T12:59:19.079966",
+     "exception": false,
+     "start_time": "2025-05-08T07:45:54.128131",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 1 Loss: 1.9762718677520752\n",
+      "Epoch 2 Loss: 1.7072618007659912\n",
+      "Epoch 3 Loss: 1.004867434501648\n",
+      "Epoch 4 Loss: 1.1051106452941895\n",
+      "Epoch 5 Loss: 1.7745879888534546\n",
+      "Epoch 6 Loss: 1.489194631576538\n",
+      "Epoch 7 Loss: 0.4502641260623932\n",
+      "Epoch 8 Loss: 0.8465068340301514\n",
+      "Epoch 9 Loss: 0.9355587959289551\n",
+      "Epoch 10 Loss: 1.5191311836242676\n",
+      "Epoch 11 Loss: 1.0396288633346558\n",
+      "Epoch 12 Loss: 1.3589590787887573\n",
+      "Epoch 13 Loss: 0.9656774997711182\n",
+      "Epoch 14 Loss: 0.8843576908111572\n",
+      "Epoch 15 Loss: 0.9313235282897949\n",
+      "Epoch 16 Loss: 0.8372447490692139\n",
+      "Epoch 17 Loss: 0.29350316524505615\n",
+      "Epoch 18 Loss: 0.8141506314277649\n",
+      "Epoch 19 Loss: 0.23603199422359467\n",
+      "Epoch 20 Loss: 0.39931949973106384\n",
+      "Epoch 21 Loss: 1.0327352285385132\n",
+      "Epoch 22 Loss: 0.8041567206382751\n",
+      "Epoch 23 Loss: 0.586841344833374\n",
+      "Epoch 24 Loss: 0.6954494118690491\n",
+      "Epoch 25 Loss: 0.6907976865768433\n",
+      "Epoch 26 Loss: 0.7179848551750183\n",
+      "Epoch 27 Loss: 0.850442111492157\n",
+      "Epoch 28 Loss: 1.19255530834198\n",
+      "Epoch 29 Loss: 0.8456192016601562\n",
+      "Epoch 30 Loss: 0.5419325232505798\n"
+     ]
+    }
+   ],
+   "source": [
+    "optimizer = AdamW(model.parameters(), lr=5e-6)\n",
+    "\n",
+    "device = torch.device(\"cuda\") if torch.cuda.is_available() else torch.device(\"cpu\")\n",
+    "model.to(device)\n",
+    "\n",
+    "epochs = 30\n",
+    "for epoch in range(epochs):\n",
+    "    model.train()\n",
+    "    for batch in train_loader:\n",
+    "        optimizer.zero_grad()\n",
+    "\n",
+    "        input_ids = batch[\"input_ids\"].to(device)\n",
+    "        attention_mask = batch[\"attention_mask\"].to(device)\n",
+    "        labels = batch[\"labels\"].to(device)\n",
+    "\n",
+    "        outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)\n",
+    "        loss = outputs.loss\n",
+    "        loss.backward()\n",
+    "        optimizer.step()\n",
+    "\n",
+    "    print(f\"Epoch {epoch + 1} Loss: {loss.item()}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "57d6d70c",
+   "metadata": {
+    "id": "cqG58F5DXoaH",
+    "papermill": {
+     "duration": 0.009237,
+     "end_time": "2025-05-08T12:59:19.098581",
+     "exception": false,
+     "start_time": "2025-05-08T12:59:19.089344",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Model Testing"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "id": "7d9973ac",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T12:59:19.180209Z",
+     "iopub.status.busy": "2025-05-08T12:59:19.179940Z",
+     "iopub.status.idle": "2025-05-08T12:59:20.949266Z",
+     "shell.execute_reply": "2025-05-08T12:59:20.948075Z"
+    },
+    "id": "rLZrP44tXllW",
+    "papermill": {
+     "duration": 1.842387,
+     "end_time": "2025-05-08T12:59:20.950440",
+     "exception": false,
+     "start_time": "2025-05-08T12:59:19.108053",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "--------------------------------------------------\n",
+      "input_txt: What is the meaning of Surah The Poets:212?\n",
+      "true_label: Truly they are barred restrained with blazing stars from the hearing of the sayings of the angels.\n",
+      "true_pred: So fear God and obey me.\n",
+      "--------------------------------------------------\n",
+      "input_txt: Where was Surah Yâ Sîn, verse 78 revealed?\n",
+      "true_label: It was revealed in Makkah.\n",
+      "true_pred: It was revealed in Makkah.\n",
+      "--------------------------------------------------\n",
+      "input_txt: What is the meaning of Surah 18:72?\n",
+      "true_label: He said ‘Did I not say that you would not be able to bear with me?’\n",
+      "true_pred: And We did not send before you any messengers except as a bearer of good tidings of Paradise for those who believe and as a warner to threaten those who disbelieve.\n",
+      "--------------------------------------------------\n",
+      "input_txt: What is the meaning of Surah 56:26?\n",
+      "true_label: but only the saying ‘Peace!’ ‘Peace!’ salāman salāman substitutes for qīlan ‘the saying’ which they will hear.\n",
+      "true_pred: So which of your Lord’s favours will you deny?\n",
+      "--------------------------------------------------\n",
+      "input_txt: What is the meaning of Surah The Ascending Stairways:17?\n",
+      "true_label: it will call him who turned his back and ignored faith saying to him ‘To me! to me come hither!’\n",
+      "true_pred: and by the night when it enshrouds with its darkness\n",
+      "--------------------------------------------------\n",
+      "input_txt: Where was Surah Yâ Sîn, verse 32 revealed?\n",
+      "true_label: It was revealed in Makkah.\n",
+      "true_pred: It was revealed in Makkah.\n",
+      "--------------------------------------------------\n",
+      "input_txt: What is the meaning of Surah 83:21?\n",
+      "true_label: witnessed by those brought near from among the angels.\n",
+      "true_pred: and by the night when it enshrouds with its darkness and its darkness\n",
+      "--------------------------------------------------\n",
+      "input_txt: What is the meaning of Surah Al-Hijr:56?\n",
+      "true_label: He said ‘And who — in other words no one — despairs read yaqnitu or yaqnatu of the mercy of his Lord save those who are astray?’ save disbelievers.\n",
+      "true_pred: And verily We sent Noah to his people and they said ‘O my people worship God affirm His Oneness and do not be degenerate in the earth seeking corruption’.\n"
+     ]
+    }
+   ],
+   "source": [
+    "model.eval()\n",
+    "for batch in test_loader:\n",
+    "    input_ids = batch[\"input_ids\"].to(device)\n",
+    "    attention_mask = batch[\"attention_mask\"].to(device)\n",
+    "    labels = batch[\"labels\"].to(device)\n",
+    "\n",
+    "    input_texts = [tokenizer.decode(ids, skip_special_tokens=True) for ids in input_ids]\n",
+    "    true_labels = [tokenizer.decode(label, skip_special_tokens=True) for label in labels]\n",
+    "\n",
+    "    outputs = model.generate(\n",
+    "        input_ids=input_ids,\n",
+    "        attention_mask=attention_mask,\n",
+    "        max_length=50\n",
+    "    )\n",
+    "    predictions = [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]\n",
+    "\n",
+    "    for input_text, true_label, pred in zip(input_texts, true_labels, predictions):\n",
+    "        print(\"-\" * 50)\n",
+    "        print(f\"input_txt: {input_text}\")\n",
+    "        print(f\"true_label: {true_label}\")\n",
+    "        print(f\"true_pred: {pred}\")\n",
+    "\n",
+    "    break"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "15d111a3",
+   "metadata": {
+    "id": "PzMCtm-vXs0n",
+    "papermill": {
+     "duration": 0.009234,
+     "end_time": "2025-05-08T12:59:20.969585",
+     "exception": false,
+     "start_time": "2025-05-08T12:59:20.960351",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Model Evaluation"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "id": "9ac395f4",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T12:59:20.988990Z",
+     "iopub.status.busy": "2025-05-08T12:59:20.988752Z",
+     "iopub.status.idle": "2025-05-08T12:59:21.008121Z",
+     "shell.execute_reply": "2025-05-08T12:59:21.007293Z"
+    },
+    "id": "ogvbZYPsXwfI",
+    "papermill": {
+     "duration": 0.030352,
+     "end_time": "2025-05-08T12:59:21.009295",
+     "exception": false,
+     "start_time": "2025-05-08T12:59:20.978943",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Average BLEU Score: 0.25\n",
+      "Average ROUGE-1 Score: 0.3541229160910012\n",
+      "Average ROUGE-L Score: 0.3368610113290964\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/usr/local/lib/python3.11/dist-packages/nltk/translate/bleu_score.py:577: UserWarning: \n",
+      "The hypothesis contains 0 counts of 2-gram overlaps.\n",
+      "Therefore the BLEU score evaluates to 0, independently of\n",
+      "how many N-gram overlaps of lower order it contains.\n",
+      "Consider using lower n-gram order or use SmoothingFunction()\n",
+      "  warnings.warn(_msg)\n",
+      "/usr/local/lib/python3.11/dist-packages/nltk/translate/bleu_score.py:577: UserWarning: \n",
+      "The hypothesis contains 0 counts of 3-gram overlaps.\n",
+      "Therefore the BLEU score evaluates to 0, independently of\n",
+      "how many N-gram overlaps of lower order it contains.\n",
+      "Consider using lower n-gram order or use SmoothingFunction()\n",
+      "  warnings.warn(_msg)\n",
+      "/usr/local/lib/python3.11/dist-packages/nltk/translate/bleu_score.py:577: UserWarning: \n",
+      "The hypothesis contains 0 counts of 4-gram overlaps.\n",
+      "Therefore the BLEU score evaluates to 0, independently of\n",
+      "how many N-gram overlaps of lower order it contains.\n",
+      "Consider using lower n-gram order or use SmoothingFunction()\n",
+      "  warnings.warn(_msg)\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Initialize the ROUGE scorer\n",
+    "scorer = rouge_scorer.RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)\n",
+    "\n",
+    "# Assuming 'predictions' and 'true_labels' are lists of strings from the previous code block\n",
+    "\n",
+    "bleu_scores = []\n",
+    "rouge1_scores = []\n",
+    "rougeL_scores = []\n",
+    "\n",
+    "for prediction, true_label in zip(predictions, true_labels):\n",
+    "  # Calculate BLEU score\n",
+    "  reference = [true_label.split()]\n",
+    "  candidate = prediction.split()\n",
+    "  bleu_score = sentence_bleu(reference, candidate)\n",
+    "  bleu_scores.append(bleu_score)\n",
+    "\n",
+    "  # Calculate ROUGE scores\n",
+    "  scores = scorer.score(true_label, prediction)\n",
+    "  rouge1_scores.append(scores['rouge1'].fmeasure)\n",
+    "  rougeL_scores.append(scores['rougeL'].fmeasure)\n",
+    "\n",
+    "# Calculate average scores\n",
+    "avg_bleu = np.mean(bleu_scores)\n",
+    "avg_rouge1 = np.mean(rouge1_scores)\n",
+    "avg_rougeL = np.mean(rougeL_scores)\n",
+    "\n",
+    "print(f\"Average BLEU Score: {avg_bleu}\")\n",
+    "print(f\"Average ROUGE-1 Score: {avg_rouge1}\")\n",
+    "print(f\"Average ROUGE-L Score: {avg_rougeL}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f18c3715",
+   "metadata": {
+    "id": "0wA6lLQzYCZt",
+    "papermill": {
+     "duration": 0.009443,
+     "end_time": "2025-05-08T12:59:21.028523",
+     "exception": false,
+     "start_time": "2025-05-08T12:59:21.019080",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Penjelasan Setiap Metrik\n",
+    "\n",
+    "---\n",
+    "\n",
+    "- **BLEU (Bilingual Evaluation Understudy)**\n",
+    "\n",
+    "  BLEU digunakan untuk mengukur kemiripan antara hasil generasi model dengan jawaban referensi berdasarkan kesamaan n-gram.\n",
+    "\n",
+    "  Dalam model kali ini, skor BLEU kita menunjukkan bahwa model menghasilkan jawaban yang memiliki kemiripan n-gram dengan referensi, namun tetap menyisakan ruang untuk peningkatan struktur dan kesesuaian kata.\n",
+    "\n",
+    "---\n",
+    "\n",
+    "- **ROUGE-1**\n",
+    "\n",
+    "  Mengukur kesamaan kata secara langsung (unigram overlap) antara jawaban model dan jawaban referensi.\n",
+    "\n",
+    "---\n",
+    "\n",
+    "- **ROUGE-L**\n",
+    "  \n",
+    "  Mengukur kesamaan struktur atau urutan kata (longest common subsequence)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f4d1b248",
+   "metadata": {
+    "id": "9JhwUHjmYNKk",
+    "papermill": {
+     "duration": 0.009273,
+     "end_time": "2025-05-08T12:59:21.047266",
+     "exception": false,
+     "start_time": "2025-05-08T12:59:21.037993",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "source": [
+    "## Model Saving"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "id": "5e267ec4",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2025-05-08T12:59:21.068385Z",
+     "iopub.status.busy": "2025-05-08T12:59:21.067949Z",
+     "iopub.status.idle": "2025-05-08T12:59:22.417113Z",
+     "shell.execute_reply": "2025-05-08T12:59:22.416246Z"
+    },
+    "id": "6ayA7q4pYInv",
+    "papermill": {
+     "duration": 1.361727,
+     "end_time": "2025-05-08T12:59:22.418406",
+     "exception": false,
+     "start_time": "2025-05-08T12:59:21.056679",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/usr/local/lib/python3.11/dist-packages/transformers/modeling_utils.py:3339: UserWarning: Moving the following attributes in the config to the generation config: {'early_stopping': True, 'num_beams': 4, 'no_repeat_ngram_size': 3, 'forced_bos_token_id': 0}. You are seeing this warning because you've set generation parameters in the model config, as opposed to in the generation config.\n",
+      "  warnings.warn(\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Model saved to /kaggle/working/Model\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Save the model\n",
+    "model_path = \"/kaggle/working/Model\"\n",
+    "model.save_pretrained(model_path)\n",
+    "tokenizer.save_pretrained(model_path)\n",
+    "\n",
+    "print(f\"Model saved to {model_path}\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "colab": {
+   "authorship_tag": "ABX9TyM777SO3W3VEaBzFUPnOC3O",
+   "mount_file_id": "1E9BRkr3hBx8yPEZ336cDlK3bxN1RCJGa",
+   "provenance": []
+  },
+  "kaggle": {
+   "accelerator": "nvidiaTeslaT4",
+   "dataSources": [
+    {
+     "datasetId": 45837,
+     "sourceId": 83625,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 1948398,
+     "sourceId": 3241687,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 4750123,
+     "sourceId": 8068053,
+     "sourceType": "datasetVersion"
+    },
+    {
+     "datasetId": 6873426,
+     "sourceId": 11035442,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 31011,
+   "isGpuEnabled": true,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.11"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 18892.091988,
+   "end_time": "2025-05-08T12:59:25.712327",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2025-05-08T07:44:33.620339",
+   "version": "2.6.0"
+  },
+  "widgets": {
+   "application/vnd.jupyter.widget-state+json": {
+    "state": {
+     "04b335d8982e4e5abf6aad2cfbf5f6e8": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_a6f0a9ccf31d409aa6a7f04f7fea13c9",
+       "max": 1355863.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_39d718fcf58c48689694948e71ba1e9e",
+       "tabbable": null,
+       "tooltip": null,
+       "value": 1355863.0
+      }
+     },
+     "0cd98dd89fa743c28a312f3b97b84d94": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "159f0f73e13847d98ab6ac24e268b002": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_887e7334075d46e08f14a0bef0ae8833",
+       "placeholder": "​",
+       "style": "IPY_MODEL_d7064e0629e54dbdb7f7ab5f0845c25c",
+       "tabbable": null,
+       "tooltip": null,
+       "value": " 899k/899k [00:00&lt;00:00, 14.4MB/s]"
+      }
+     },
+     "1ee9144369b3406880f91cfa50774433": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_5f986c8eb6b346bf87ae61c427ce9b00",
+       "placeholder": "​",
+       "style": "IPY_MODEL_8129d852c77f4a3c935d4a2c91604990",
+       "tabbable": null,
+       "tooltip": null,
+       "value": " 1.36M/1.36M [00:00&lt;00:00, 50.2MB/s]"
+      }
+     },
+     "2aa2ec4e097d48c38609348c847c980e": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "2caa9f5584724e3b959c2d5551810dab": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_7a7f6dbadff74934858dd012e35570e6",
+        "IPY_MODEL_802a829fe1eb404c95fc3356b281dc2b",
+        "IPY_MODEL_d319a77cba3241d0bfbed40d55a4d314"
+       ],
+       "layout": "IPY_MODEL_f9259c83ce164fc7ae362c8f21173563",
+       "tabbable": null,
+       "tooltip": null
+      }
+     },
+     "35afccfccc30495b8c7808557dbef2d8": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "37277dacae10496088dc77acb9bce052": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "39d718fcf58c48689694948e71ba1e9e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "3ddb37cef58c47958bc69bf315f0be3a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "44ba7b921bfa4aaaa77d7e366b786d91": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "4e53d5245e294938878e22186d366759": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "54857f388a33499581117b8c8583bfb4": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_37277dacae10496088dc77acb9bce052",
+       "placeholder": "​",
+       "style": "IPY_MODEL_44ba7b921bfa4aaaa77d7e366b786d91",
+       "tabbable": null,
+       "tooltip": null,
+       "value": "config.json: 100%"
+      }
+     },
+     "55b35a6591ae4fec9bb3726ef3a83b92": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "5f986c8eb6b346bf87ae61c427ce9b00": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "61f9a7bbbbea48a6929978bcce9fb2fc": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_7dded7d438c049bd8cd4c055db75138c",
+        "IPY_MODEL_baea96b8c47e43e0bb341d7302995caa",
+        "IPY_MODEL_b8607bce968d404996cacbff909da1fa"
+       ],
+       "layout": "IPY_MODEL_a11e786748c840c493dc5e141e0cc62f",
+       "tabbable": null,
+       "tooltip": null
+      }
+     },
+     "6374dae659c244018978c235a1ae65d6": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "6f13c47173ea4ddba14fd18deda4c2a2": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "6f753fbdd03842ee8fba21281349f949": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_d3ee91a705eb4e2480eff16cf31d200b",
+       "placeholder": "​",
+       "style": "IPY_MODEL_35afccfccc30495b8c7808557dbef2d8",
+       "tabbable": null,
+       "tooltip": null,
+       "value": "vocab.json: 100%"
+      }
+     },
+     "715afe6ba99d48028705a74561daf1db": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "7a7f6dbadff74934858dd012e35570e6": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_9bc942a8ab5a45c39a86138453cd6ee1",
+       "placeholder": "​",
+       "style": "IPY_MODEL_55b35a6591ae4fec9bb3726ef3a83b92",
+       "tabbable": null,
+       "tooltip": null,
+       "value": "merges.txt: 100%"
+      }
+     },
+     "7a8e3397e3be4e2e9897cf9e2c6062aa": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "7dded7d438c049bd8cd4c055db75138c": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_2aa2ec4e097d48c38609348c847c980e",
+       "placeholder": "​",
+       "style": "IPY_MODEL_6f13c47173ea4ddba14fd18deda4c2a2",
+       "tabbable": null,
+       "tooltip": null,
+       "value": "model.safetensors: 100%"
+      }
+     },
+     "802a829fe1eb404c95fc3356b281dc2b": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_ac13fe27ae944c2584a7bffede33d13f",
+       "max": 456318.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_b75d9ad56a00436c8d4ba257392dd2e3",
+       "tabbable": null,
+       "tooltip": null,
+       "value": 456318.0
+      }
+     },
+     "8129d852c77f4a3c935d4a2c91604990": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "83340c5785bf4b0db3b345c08c28db8e": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_919b51cc99814b3ebe931b5f38650797",
+       "max": 1716.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_de81a620599348f1a802e80a697a26a7",
+       "tabbable": null,
+       "tooltip": null,
+       "value": 1716.0
+      }
+     },
+     "887e7334075d46e08f14a0bef0ae8833": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "919b51cc99814b3ebe931b5f38650797": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "91ca09c659a140399ebbb82109409dc1": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_ec574eb6567242eb83b46b518baebb52",
+       "placeholder": "​",
+       "style": "IPY_MODEL_4e53d5245e294938878e22186d366759",
+       "tabbable": null,
+       "tooltip": null,
+       "value": " 1.72k/1.72k [00:00&lt;00:00, 224kB/s]"
+      }
+     },
+     "97d54b22b9b84ff7af984a1ba4aabdc6": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "99d3d500e97c4fa5b57032f797d73d3e": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "9bc942a8ab5a45c39a86138453cd6ee1": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "a11e786748c840c493dc5e141e0cc62f": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "a6f0a9ccf31d409aa6a7f04f7fea13c9": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "ac13fe27ae944c2584a7bffede33d13f": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "ac23b211ef164c31a552bc0cf693a4b9": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "b75d9ad56a00436c8d4ba257392dd2e3": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "b8607bce968d404996cacbff909da1fa": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_6374dae659c244018978c235a1ae65d6",
+       "placeholder": "​",
+       "style": "IPY_MODEL_97d54b22b9b84ff7af984a1ba4aabdc6",
+       "tabbable": null,
+       "tooltip": null,
+       "value": " 558M/558M [00:02&lt;00:00, 243MB/s]"
+      }
+     },
+     "baea96b8c47e43e0bb341d7302995caa": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_de82498f8db8452fbdec2a2ae26ae823",
+       "max": 557709915.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_f9e2b6af2f2c44ceac23ddaa421f3022",
+       "tabbable": null,
+       "tooltip": null,
+       "value": 557709915.0
+      }
+     },
+     "c48d824c344d438181caafd9eb024b7d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_54857f388a33499581117b8c8583bfb4",
+        "IPY_MODEL_83340c5785bf4b0db3b345c08c28db8e",
+        "IPY_MODEL_91ca09c659a140399ebbb82109409dc1"
+       ],
+       "layout": "IPY_MODEL_99d3d500e97c4fa5b57032f797d73d3e",
+       "tabbable": null,
+       "tooltip": null
+      }
+     },
+     "ceadab54054044bca5436bd773049f64": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_6f753fbdd03842ee8fba21281349f949",
+        "IPY_MODEL_ee3aba4e13ec4388a1d6917f43bc6f44",
+        "IPY_MODEL_159f0f73e13847d98ab6ac24e268b002"
+       ],
+       "layout": "IPY_MODEL_0cd98dd89fa743c28a312f3b97b84d94",
+       "tabbable": null,
+       "tooltip": null
+      }
+     },
+     "d021b0d2c6c14f149ea5d4d0e7b59c0a": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "d319a77cba3241d0bfbed40d55a4d314": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_d021b0d2c6c14f149ea5d4d0e7b59c0a",
+       "placeholder": "​",
+       "style": "IPY_MODEL_7a8e3397e3be4e2e9897cf9e2c6062aa",
+       "tabbable": null,
+       "tooltip": null,
+       "value": " 456k/456k [00:00&lt;00:00, 44.6MB/s]"
+      }
+     },
+     "d3ee91a705eb4e2480eff16cf31d200b": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "d7064e0629e54dbdb7f7ab5f0845c25c": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "background": null,
+       "description_width": "",
+       "font_size": null,
+       "text_color": null
+      }
+     },
+     "de81a620599348f1a802e80a697a26a7": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "de82498f8db8452fbdec2a2ae26ae823": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "e67b9111ee574844b4cf213d2bb1a1ef": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "ec574eb6567242eb83b46b518baebb52": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "ee3aba4e13ec4388a1d6917f43bc6f44": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "FloatProgressModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "FloatProgressModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "ProgressView",
+       "bar_style": "success",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_eee81ceec7cb418292366b460815dfd4",
+       "max": 898823.0,
+       "min": 0.0,
+       "orientation": "horizontal",
+       "style": "IPY_MODEL_715afe6ba99d48028705a74561daf1db",
+       "tabbable": null,
+       "tooltip": null,
+       "value": 898823.0
+      }
+     },
+     "eee81ceec7cb418292366b460815dfd4": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "f9259c83ce164fc7ae362c8f21173563": {
+      "model_module": "@jupyter-widgets/base",
+      "model_module_version": "2.0.0",
+      "model_name": "LayoutModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/base",
+       "_model_module_version": "2.0.0",
+       "_model_name": "LayoutModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "LayoutView",
+       "align_content": null,
+       "align_items": null,
+       "align_self": null,
+       "border_bottom": null,
+       "border_left": null,
+       "border_right": null,
+       "border_top": null,
+       "bottom": null,
+       "display": null,
+       "flex": null,
+       "flex_flow": null,
+       "grid_area": null,
+       "grid_auto_columns": null,
+       "grid_auto_flow": null,
+       "grid_auto_rows": null,
+       "grid_column": null,
+       "grid_gap": null,
+       "grid_row": null,
+       "grid_template_areas": null,
+       "grid_template_columns": null,
+       "grid_template_rows": null,
+       "height": null,
+       "justify_content": null,
+       "justify_items": null,
+       "left": null,
+       "margin": null,
+       "max_height": null,
+       "max_width": null,
+       "min_height": null,
+       "min_width": null,
+       "object_fit": null,
+       "object_position": null,
+       "order": null,
+       "overflow": null,
+       "padding": null,
+       "right": null,
+       "top": null,
+       "visibility": null,
+       "width": null
+      }
+     },
+     "f9e2b6af2f2c44ceac23ddaa421f3022": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "ProgressStyleModel",
+      "state": {
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "ProgressStyleModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/base",
+       "_view_module_version": "2.0.0",
+       "_view_name": "StyleView",
+       "bar_color": null,
+       "description_width": ""
+      }
+     },
+     "fe9d9c60e9884d93bdbb051afa319489": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HTMLModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HTMLModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HTMLView",
+       "description": "",
+       "description_allow_html": false,
+       "layout": "IPY_MODEL_3ddb37cef58c47958bc69bf315f0be3a",
+       "placeholder": "​",
+       "style": "IPY_MODEL_ac23b211ef164c31a552bc0cf693a4b9",
+       "tabbable": null,
+       "tooltip": null,
+       "value": "tokenizer.json: 100%"
+      }
+     },
+     "ff076aed60a244ec88f8a5ea37f9067d": {
+      "model_module": "@jupyter-widgets/controls",
+      "model_module_version": "2.0.0",
+      "model_name": "HBoxModel",
+      "state": {
+       "_dom_classes": [],
+       "_model_module": "@jupyter-widgets/controls",
+       "_model_module_version": "2.0.0",
+       "_model_name": "HBoxModel",
+       "_view_count": null,
+       "_view_module": "@jupyter-widgets/controls",
+       "_view_module_version": "2.0.0",
+       "_view_name": "HBoxView",
+       "box_style": "",
+       "children": [
+        "IPY_MODEL_fe9d9c60e9884d93bdbb051afa319489",
+        "IPY_MODEL_04b335d8982e4e5abf6aad2cfbf5f6e8",
+        "IPY_MODEL_1ee9144369b3406880f91cfa50774433"
+       ],
+       "layout": "IPY_MODEL_e67b9111ee574844b4cf213d2bb1a1ef",
+       "tabbable": null,
+       "tooltip": null
+      }
+     }
+    },
+    "version_major": 2,
+    "version_minor": 0
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
