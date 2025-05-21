@@ -1,41 +1,50 @@
-# Quranic QnA Chatbot using T5
+# Quranic QnA Chatbot using Transformers (T5, BART, Pegasus)
 
-Welcome to **Quranic QnA Chatbot**! This project focuses on building a Question and Answer chatbot based on the Quran using large language models, starting with **T5** (Text-To-Text Transfer Transformer). The chatbot is trained on a synthetic reasoning dataset and Quranic verses in English, allowing it to answer questions about the Quran.
+Welcome to **Quranic QnA Chatbot**! This project focuses on building a Question and Answer chatbot based on the Quran using large language models. The chatbot is trained on a synthetic reasoning dataset and Quranic verses in English, enabling it to answer Quran-related questions using natural language understanding.
 
 ## Live Dataset
 
 You can access the datasets used in this project through the following links:
-- [Quranic Reasoning Synthetic Dataset (Kaggle)](https://www.kaggle.com/datasets/lazer999/quranic-reasoning-synthetic-dataset)
-- [Quran in English (Kaggle)](https://www.kaggle.com/datasets/alizahidraja/quran-english)
+
+* [Quranic Reasoning Synthetic Dataset (Kaggle)](https://www.kaggle.com/datasets/lazer999/quranic-reasoning-synthetic-dataset)
+* [Quran in English (Kaggle)](https://www.kaggle.com/datasets/alizahidraja/quran-english)
 
 ## Project Status
 
-🚧 **Status**: `In Progress - T5 Implemented, Testing Other LLMs Soon`
+🚧 **Status**: `In Progress - T5, BART, and Pegasus Implemented`
 
 ## Features
 
-Here's a description of the current project implementation and features:
+Here's a breakdown of the current implementation and features:
 
-- **Data Loading and Preprocessing**
-  - Loading datasets from Kaggle using `kagglehub` and formatting it for model training.
+* **Data Loading and Preprocessing**
 
-- **Modeling with T5**
-  - Tokenization using `T5Tokenizer`
-  - Fine-tuning `T5ForConditionalGeneration` model on the question-answer dataset
+  * Load datasets using `kagglehub` and prepare them for training and evaluation.
 
-- **Training Setup**
-  - Training and validation split using `train_test_split`
-  - Custom Dataset class and PyTorch `DataLoader`
-  - Training loop with optimizer `AdamW`
+* **Modeling with Transformers**
 
-- **Evaluation**
-  - Evaluation using BLEU and ROUGE scores to measure the quality of generated answers
+  * **T5**: Fine-tuned using `T5ForConditionalGeneration`
+  * **BART**: Implemented with `BartForConditionalGeneration`
+  * **Pegasus**: Integrated using `PegasusForConditionalGeneration`
 
-- **Visualization**
-  - Training progress and evaluation results visualized using `matplotlib`
+* **Training Setup**
 
-- **Future Work**
-  - Explore alternative models like **BART**, **LLaMa**, and other LLMs for improved performance
+  * Data splitting using `train_test_split`
+  * Custom `Dataset` class and PyTorch `DataLoader`
+  * Training loop using `AdamW` optimizer
+  * Support for running on GPU with PyTorch
+
+* **Evaluation**
+
+  * Quality of generated answers is measured using BLEU and ROUGE scores.
+
+* **Visualization**
+
+  * Training and evaluation metrics visualized using `matplotlib`.
+
+* **Model Comparison (Coming Soon)**
+
+  * Comparative analysis between T5, BART, and Pegasus on performance and accuracy.
 
 ## Technologies Used
 
@@ -49,7 +58,11 @@ import os
 import pathlib
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+from transformers import (
+    T5Tokenizer, T5ForConditionalGeneration,
+    BartTokenizer, BartForConditionalGeneration,
+    PegasusTokenizer, PegasusForConditionalGeneration
+)
 import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.optim import AdamW
@@ -59,17 +72,16 @@ from rouge_score import rouge_scorer
 
 ## Setup & How to Run
 
-1. Download the `.ipynb` notebook from the repository or open it in Google Colab.
-2. Make sure to authenticate your Kaggle API to access the datasets.
-3. Run all cells in the notebook sequentially.
-4. Modify the dataset paths or batch size depending on your runtime environment.
+1. Open the `.ipynb` file in Jupyter Notebook or Google Colab.
+2. Authenticate with Kaggle API to download the required datasets.
+3. Run all the cells sequentially.
+4. Modify model choice, hyperparameters, or dataset paths as needed for experimentation.
 
-⚠️ This program can be run directly on the `.ipynb` file altogether.
+⚠️ This notebook-based program can be run directly by executing all cells.
 
 ## Notes
 
-- The chatbot currently uses the T5 model for generating answers.
-- Integration and testing of other models like **BART** and **LLaMa** are planned in future iterations.
+* The chatbot currently supports T5, BART, and Pegasus for answer generation.
+* Comparative evaluation and model performance summary are under development.
 
-Feel free to fork the project, give it a ⭐, and contribute! 🙌
-
+Feel free to fork this project, leave a ⭐, and contribute improvements or new models! 🙌
