@@ -1,0 +1,11 @@
+crewai
+crewai-tools
+langchain
+langchain-community
+langchain-openai
+pymilvus
+pandas
+flask
+python-dotenv
+kaggle
+tqdm

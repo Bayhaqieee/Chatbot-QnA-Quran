@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Islamic QnA RAG System</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: #fff; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
+        h1 { text-align: center; color: #333; margin-bottom: 1.5rem; }
+        textarea { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; resize: vertical; margin-bottom: 1rem; box-sizing: border-box; }
+        button { display: block; width: 100%; padding: 0.8rem; border: none; background-color: #007bff; color: white; font-size: 1rem; border-radius: 8px; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #aaa; cursor: not-allowed; }
+        .result-container { margin-top: 2rem; padding: 1.5rem; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fafafa; white-space: pre-wrap; word-wrap: break-word; }
+        .loader { text-align: center; font-style: italic; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Islamic QnA RAG System</h1>
+        <textarea id="topicInput" rows="4" placeholder="Ask a question about Islamic knowledge... e.g., 'What are the scholarly views on cryptocurrency?'"></textarea>
+        <button id="askButton" onclick="askQuestion()">Ask the AI Team</button>
+        <div id="result" class="result-container" style="display:none;"></div>
+    </div>
+    <script>
+        const topicInput = document.getElementById('topicInput');
+        const askButton = document.getElementById('askButton');
+        const resultDiv = document.getElementById('result');
+        async function askQuestion() {
+            const topic = topicInput.value.trim();
+            if (!topic) {
+                alert('Please enter a topic or question.');
+                return;
+            }
+            askButton.disabled = true;
+            askButton.textContent = 'Researching...';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loader">The AI team is researching and compiling the answer. This may take a moment...</div>';
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic: topic })
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                resultDiv.textContent = data.answer || 'No answer was returned.';
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.textContent = 'An error occurred. Please check the console and ensure the Flask server is running correctly.';
+            } finally {
+                askButton.disabled = false;
+                askButton.textContent = 'Ask the AI Team';
+            }
+        }
+    </script>
+</body>
+</html>
