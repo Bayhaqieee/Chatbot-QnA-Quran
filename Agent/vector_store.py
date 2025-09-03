@@ -27,9 +27,7 @@ def get_milvus_retrievers():
     return quran_vector_store.as_retriever(search_kwargs={"k": 5}), hadith_vector_store.as_retriever(search_kwargs={"k": 5})
 
 def ingest_data_to_milvus(collection_name, documents):
-    """
-    Ingests chunked documents into a Milvus collection in batches to handle API rate limits.
-    """
+    """Ingests chunked documents into a Milvus collection in batches to handle API rate limits."""
     print(f"--- Starting data ingestion for '{collection_name}' ---")
     if utility.has_collection(collection_name):
         print(f"Collection '{collection_name}' already exists. Dropping for fresh ingestion.")
@@ -42,7 +40,7 @@ def ingest_data_to_milvus(collection_name, documents):
         api_version=config.AZURE_API_VERSION
     )
     
-    batch_size = 500  # Adjust batch size based on your API limits
+    batch_size = 500
     vector_store = None
 
     print(f"Ingesting {len(documents)} documents in batches of {batch_size}...")
@@ -50,7 +48,6 @@ def ingest_data_to_milvus(collection_name, documents):
         batch = documents[i:i + batch_size]
         
         if vector_store is None:
-            # First batch creates the collection
             vector_store = Milvus.from_documents(
                 batch, embeddings, collection_name=collection_name,
                 connection_args={"host": config.MILVUS_HOST, "port": config.MILVUS_PORT}

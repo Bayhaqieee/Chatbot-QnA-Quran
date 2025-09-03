@@ -9,3 +9,6 @@ flask
 python-dotenv
 kaggle
 tqdm
+faiss-cpu
+beautifulsoup4
+requests

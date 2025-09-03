@@ -1,34 +1,22 @@
 import os
-import zipfile
+os.environ['KAGGLE_CONFIG_DIR'] = '.'
+
+import kaggle
 from langchain_community.document_loaders import CSVLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-import kaggle
-
-def setup_kaggle_api():
-    """Sets up the Kaggle API credentials."""
-    # The kaggle library automatically looks for ~/.kaggle/kaggle.json
-    # We can programmatically set it up if needed, but placing the file is easier.
-    # This function ensures the directory exists and has the right permissions.
-    os.makedirs(os.path.expanduser('~/.kaggle'), exist_ok=True)
-    if os.path.exists('kaggle.json'):
-        os.rename('kaggle.json', os.path.expanduser('~/.kaggle/kaggle.json'))
-        os.chmod(os.path.expanduser('~/.kaggle/kaggle.json'), 0o600)
-    elif not os.path.exists(os.path.expanduser('~/.kaggle/kaggle.json')):
-        raise FileNotFoundError("kaggle.json not found in project root or ~/.kaggle/")
 
 def download_and_extract_datasets():
     """Downloads and extracts datasets from Kaggle if they don't exist."""
     datasets_dir = 'datasets'
     os.makedirs(datasets_dir, exist_ok=True)
     
-    # Dataset 1: Hadith
     hadith_path = os.path.join(datasets_dir, 'all_hadiths_clean.csv')
     if not os.path.exists(hadith_path):
         print("Downloading Hadith dataset...")
+        # The API will now correctly find kaggle.json in your project root
         kaggle.api.dataset_download_files('fahd09/hadith-dataset', path=datasets_dir, unzip=True)
         print("Hadith dataset downloaded.")
 
-    # Dataset 2: Quran
     quran_path = os.path.join(datasets_dir, 'main_df.csv')
     if not os.path.exists(quran_path):
         print("Downloading Quran dataset...")
@@ -42,7 +30,7 @@ def load_and_chunk_data():
     """Loads data from local CSVs and splits them into chunks."""
     print("--- Loading and Processing Data ---")
     
-    setup_kaggle_api()
+    # The setup_kaggle_api function is no longer needed with the environment variable fix.
     download_and_extract_datasets()
 
     try:
@@ -61,8 +49,5 @@ def load_and_chunk_data():
     quran_chunks = text_splitter.split_documents(quran_docs)
     hadith_chunks = text_splitter.split_documents(hadith_docs)
 
-    print(f"Quran data chunked into {len(quran_chunks)} documents.")
-    print(f"Hadith data chunked into {len(hadith_chunks)} documents.")
-    print("--- Data Loading and Processing Complete ---")
-    
+    print(f"Data chunked: {len(quran_chunks)} Quran docs, {len(hadith_chunks)} Hadith docs.")
     return quran_chunks, hadith_chunks

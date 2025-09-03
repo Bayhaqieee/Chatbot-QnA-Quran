@@ -12,13 +12,13 @@ def initialize():
     """Initializes the crew once before the first request."""
     global crew
     if crew is None and request.endpoint not in ['ingest', 'static']:
-        print("First time setup: Initializing Crew")
-        quran_retriever, hadith_retriever = vector_store.get_milvus_retrievers()
-        if quran_retriever and hadith_retriever:
-            crew = crew_setup.create_crew(quran_retriever, hadith_retriever)
-            print("Crew Initialized Successfully")
+        print("--- First time setup: Initializing Crew ---")
+        retrievers = vector_store.get_milvus_retrievers()
+        if retrievers and all(retrievers):
+            crew = crew_setup.create_crew(*retrievers)
+            print("--- Crew Initialized Successfully ---")
         else:
-            print("Crew Initialization Failed")
+            print("--- Crew Initialization Failed: Retrievers not available. ---")
 
 @app.route('/')
 def index():
@@ -28,9 +28,9 @@ def index():
 def ask_question():
     topic = request.json.get('topic')
     if not topic:
-        return jsonify({"error": "Invalid request. 'topic' is required."}), 400
+        return jsonify({"error": "'topic' is required."}), 400
     if not crew:
-        return jsonify({"error": "Crew not initialized. Please ensure data has been ingested via the /ingest endpoint."}), 500
+        return jsonify({"error": "Crew not ready. Please ensure data has been ingested via the /ingest endpoint."}), 500
 
     try:
         result = crew.kickoff(inputs={'topic': topic})
@@ -40,14 +40,15 @@ def ask_question():
 
 @app.route('/ingest')
 def ingest():
-    """One-time endpoint to trigger data download and ingestion into Milvus."""
+    """One-time endpoint to trigger data download and batched ingestion into Milvus."""
     try:
         quran_chunks, hadith_chunks = data_pipeline.load_and_chunk_data()
         if not quran_chunks or not hadith_chunks:
-            return "Failed to load data. Check CSV file paths and Kaggle setup.", 500
+            return "Failed to load/chunk data.", 500
 
         vector_store.ingest_data_to_milvus(config.QURAN_COLLECTION, quran_chunks)
         vector_store.ingest_data_to_milvus(config.HADITH_COLLECTION, hadith_chunks)
+        
         return "Data ingestion complete! You can now use the main application.", 200
     except Exception as e:
         return f"An error occurred during ingestion: {e}", 500

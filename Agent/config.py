@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 # Azure Credentials
@@ -11,8 +10,10 @@ AZURE_API_VERSION = os.getenv("AZURE_API_VERSION")
 AZURE_EMBEDDING_DEPLOYMENT_NAME = os.getenv("AZURE_EMBEDDING_DEPLOYMENT_NAME")
 AZURE_CHAT_DEPLOYMENT_NAME = os.getenv("AZURE_CHAT_DEPLOYMENT_NAME")
 
-# Serper Credentials
-SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+# Search Tool Configuration
+SEARXNG_ENDPOINT = os.getenv("SEARXNG_ENDPOINT")
+WIKIPEDIA_LANG = os.getenv("WIKIPEDIA_LANG", "en")
+SEARXNG_ENGINES = os.getenv("SEARXNG_ENGINES", "google,bing,duckduckgo,wikipedia")
 
 # Milvus Configuration
 MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
