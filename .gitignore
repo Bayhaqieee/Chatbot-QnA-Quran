@@ -2,4 +2,5 @@ Agent/.env
 Agent/venv/
 Agent/kaggle.json
 Agent/volumes/
-Agent/__pycache__
+Agent/__pycache__/
+Agent/datasets/

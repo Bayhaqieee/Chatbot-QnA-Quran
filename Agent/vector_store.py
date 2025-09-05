@@ -5,10 +5,19 @@ from langchain_openai import AzureOpenAIEmbeddings
 from pymilvus import utility, connections
 import config
 
+def connect_to_milvus():
+    """Establishes a connection to the Milvus server if not already connected."""
+    if not connections.has_connection("default"):
+        print("Establishing new connection to Milvus ")
+        connections.connect("default", host=config.MILVUS_HOST, port=config.MILVUS_PORT)
+    else:
+        print("Using existing connection to Milvus ")
+
 def get_milvus_retrievers():
     """Initializes connection to Milvus and returns LangChain retrievers."""
-    print("--- Initializing Milvus Vector Store ---")
-    connections.connect("default", host=config.MILVUS_HOST, port=config.MILVUS_PORT)
+    connect_to_milvus() # Ensure connection is active
+    
+    print(" Initializing Milvus Vector Store Retrievers ")
     embeddings = AzureOpenAIEmbeddings(
         azure_deployment=config.AZURE_EMBEDDING_DEPLOYMENT_NAME,
         api_key=config.AZURE_API_KEY,
@@ -23,12 +32,14 @@ def get_milvus_retrievers():
     quran_vector_store = Milvus(embeddings, collection_name=config.QURAN_COLLECTION, connection_args={"host": config.MILVUS_HOST, "port": config.MILVUS_PORT})
     hadith_vector_store = Milvus(embeddings, collection_name=config.HADITH_COLLECTION, connection_args={"host": config.MILVUS_HOST, "port": config.MILVUS_PORT})
     
-    print("--- Milvus Retrievers Initialized Successfully ---")
+    print(" Milvus Retrievers Initialized Successfully ")
     return quran_vector_store.as_retriever(search_kwargs={"k": 5}), hadith_vector_store.as_retriever(search_kwargs={"k": 5})
 
 def ingest_data_to_milvus(collection_name, documents):
-    """Ingests chunked documents into a Milvus collection in batches to handle API rate limits."""
-    print(f"--- Starting data ingestion for '{collection_name}' ---")
+    """Ingests chunked documents into a Milvus collection in batches."""
+    connect_to_milvus() # Ensure connection is active
+
+    print(f" Starting data ingestion for '{collection_name}' ")
     if utility.has_collection(collection_name):
         print(f"Collection '{collection_name}' already exists. Dropping for fresh ingestion.")
         utility.drop_collection(collection_name)
@@ -55,7 +66,7 @@ def ingest_data_to_milvus(collection_name, documents):
         else:
             vector_store.add_documents(batch)
         
-        print(f"  - Batch {i//batch_size + 1} ingested. Pausing for 20 seconds...")
-        time.sleep(20)
+        print(f"  - Batch {i//batch_size + 1} ingested. Pausing for 5 seconds...")
+        time.sleep(5)
 
-    print(f"--- Data ingestion for '{collection_name}' complete ---")
+    print(f" Data ingestion for '{collection_name}' complete ")
