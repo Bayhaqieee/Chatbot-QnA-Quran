@@ -2,22 +2,36 @@ import time
 from tqdm import tqdm
 from langchain_community.vectorstores import Milvus
 from langchain_openai import AzureOpenAIEmbeddings
-from pymilvus import utility, connections
+from pymilvus import utility, connections, MilvusException
 import config
 
-def connect_to_milvus():
-    """Establishes a connection to the Milvus server if not already connected."""
-    if not connections.has_connection("default"):
-        print("Establishing new connection to Milvus ")
-        connections.connect("default", host=config.MILVUS_HOST, port=config.MILVUS_PORT)
-    else:
-        print("Using existing connection to Milvus ")
+def connect_to_milvus(retries=5, delay=10):
+    """Establishes a connection to Milvus with a retry mechanism."""
+    for i in range(retries):
+        try:
+            # Check if a connection with the alias 'default' already exists
+            if 'default' in connections.list_connections():
+                connections.disconnect('default')
+            
+            connections.connect("default", host=config.MILVUS_HOST, port=config.MILVUS_PORT)
+            print("Successfully connected to Milvus.")
+            return True
+        except MilvusException as e:
+            print(f"Failed to connect to Milvus (Attempt {i+1}/{retries}): {e}")
+            if i < retries - 1:
+                print(f"Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                print("Could not connect to Milvus after multiple attempts.")
+                return False
 
 def get_milvus_retrievers():
     """Initializes connection to Milvus and returns LangChain retrievers."""
-    connect_to_milvus() # Ensure connection is active
+    print(" Initializing Milvus Vector Store ")
     
-    print(" Initializing Milvus Vector Store Retrievers ")
+    if not connect_to_milvus(): # Ensure connection is active
+        return None, None
+
     embeddings = AzureOpenAIEmbeddings(
         azure_deployment=config.AZURE_EMBEDDING_DEPLOYMENT_NAME,
         api_key=config.AZURE_API_KEY,
@@ -36,14 +50,16 @@ def get_milvus_retrievers():
     return quran_vector_store.as_retriever(search_kwargs={"k": 5}), hadith_vector_store.as_retriever(search_kwargs={"k": 5})
 
 def ingest_data_to_milvus(collection_name, documents):
-    """Ingests chunked documents into a Milvus collection in batches."""
-    connect_to_milvus() # Ensure connection is active
-
+    """Ingests chunked documents into a Milvus collection in batches to handle API rate limits."""
     print(f" Starting data ingestion for '{collection_name}' ")
+    
+    if not connect_to_milvus():
+        raise ConnectionError("Could not connect to Milvus for ingestion.")
+
     if utility.has_collection(collection_name):
         print(f"Collection '{collection_name}' already exists. Dropping for fresh ingestion.")
         utility.drop_collection(collection_name)
-
+    
     embeddings = AzureOpenAIEmbeddings(
         azure_deployment=config.AZURE_EMBEDDING_DEPLOYMENT_NAME,
         api_key=config.AZURE_API_KEY,
@@ -57,16 +73,10 @@ def ingest_data_to_milvus(collection_name, documents):
     print(f"Ingesting {len(documents)} documents in batches of {batch_size}...")
     for i in tqdm(range(0, len(documents), batch_size)):
         batch = documents[i:i + batch_size]
-        
         if vector_store is None:
-            vector_store = Milvus.from_documents(
-                batch, embeddings, collection_name=collection_name,
-                connection_args={"host": config.MILVUS_HOST, "port": config.MILVUS_PORT}
-            )
+            vector_store = Milvus.from_documents(batch, embeddings, collection_name=collection_name, connection_args={"host": config.MILVUS_HOST, "port": config.MILVUS_PORT})
         else:
             vector_store.add_documents(batch)
-        
-        print(f"  - Batch {i//batch_size + 1} ingested. Pausing for 5 seconds...")
-        time.sleep(5)
-
-    print(f" Data ingestion for '{collection_name}' complete ")
+        print(f"  - Batch {i//batch_size + 1} ingested. Pausing for 20 seconds...")
+        time.sleep(20)
+    print(f"Data ingestion for '{collection_name}' complete")

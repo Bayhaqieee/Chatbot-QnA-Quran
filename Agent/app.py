@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -16,13 +17,13 @@ def initialize():
     """Initializes the crew once before the first request."""
     global crew
     if crew is None and request.endpoint not in ['ingest', 'static']:
-        print(" First time setup: Initializing Crew ")
+        print("--- First time setup: Initializing Crew ---")
         retrievers = vector_store.get_milvus_retrievers()
         if retrievers and all(retrievers):
             crew = crew_setup.create_crew(*retrievers)
-            print("Crew Initialized Successfully ")
+            print("--- Crew Initialized Successfully ---")
         else:
-            print("Crew Initialization Failed: Retrievers not available. ")
+            print("--- Crew Initialization Failed: Retrievers not available. ---")
 
 @app.route('/')
 def index():
@@ -34,11 +35,17 @@ def ask_question():
     if not topic:
         return jsonify({"error": "'topic' is required."}), 400
     if not crew:
-        return jsonify({"error": "Crew not ready. Please ensure data has been ingested via the /ingest endpoint."}), 500
-
+        return jsonify({"error": "Crew not ready. Please ingest data via the /ingest endpoint."}), 500
     try:
         result = crew.kickoff(inputs={'topic': topic})
-        return jsonify({"answer": result})
+        try:
+            # The agent is now forced to output JSON, so we can parse it
+            answer_json = json.loads(str(result))
+            return jsonify(answer_json)
+        except json.JSONDecodeError:
+            # Fallback if the agent fails to produce perfect JSON
+            return jsonify({"answer": str(result)})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -49,13 +56,10 @@ def ingest():
         quran_chunks, hadith_chunks = data_pipeline.load_and_chunk_data()
         if not quran_chunks or not hadith_chunks:
             return "Failed to load/chunk data.", 500
-
         vector_store.ingest_data_to_milvus(config.QURAN_COLLECTION, quran_chunks)
         vector_store.ingest_data_to_milvus(config.HADITH_COLLECTION, hadith_chunks)
-        
         return "Data ingestion complete! You can now use the main application.", 200
     except Exception as e:
-        # Provide a more detailed error message for debugging
         error_message = f"An error occurred during ingestion: {type(e).__name__} - {e}"
         print(error_message)
         return error_message, 500

@@ -2,13 +2,11 @@ from __future__ import annotations
 import re
 import requests
 from typing import List, Dict, Any
-import json
 import config
 
 # Helpers
 _BASIC_PATTERNS = [
-    r"^\s*what\s+is\b", r"^\s*apa\s+itu\b",
-    r"\bdefinition\b", r"\bdefine\b", r"\bpengertian\b",
+    r"^\s*what\s+is\b", r"^\s*apa\s+itu\b", r"\bdefinition\b", r"\bdefine\b", r"\bpengertian\b",
     r"\bwhat\s+does\s+.*\bmean\b"
 ]
 
@@ -27,11 +25,14 @@ def _trim_text(s: str, limit: int = 600) -> str:
 def wikipedia_search(query: str, num: int = 5, timeout: int = 8) -> Dict[str, Any]:
     """Query MediaWiki; returns {'normalized': [...], 'raw': {...}}."""
     lang = getattr(config, "WIKIPEDIA_LANG", "en")
+    # ADDED USER-AGENT HEADER TO PREVENT 403 FORBIDDEN ERROR
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
     try:
         r = requests.get(
             f"https://{lang}.wikipedia.org/w/api.php",
             params={"action": "query", "list": "search", "srsearch": query, "utf8": 1, "format": "json"},
             timeout=timeout,
+            headers=headers
         )
         r.raise_for_status()
         data = r.json()
@@ -40,12 +41,8 @@ def wikipedia_search(query: str, num: int = 5, timeout: int = 8) -> Dict[str, An
         for h in hits:
             title = h.get("title", "")
             url = f"https://{lang}.wikipedia.org/wiki/" + title.replace(" ", "_")
-            snippet = (h.get("snippet", "")
-                       .replace('<span class="searchmatch">', '')
-                       .replace('</span>', ''))
-            normalized.append({
-                "title": title, "url": url, "snippet": _trim_text(snippet), "provider": "wikipedia"
-            })
+            snippet = (h.get("snippet", "").replace('<span class="searchmatch">', '').replace('</span>', ''))
+            normalized.append({"title": title, "url": url, "snippet": _trim_text(snippet), "provider": "wikipedia"})
         return {"normalized": normalized, "raw": {"hits": hits}}
     except Exception as e:
         print(f"Wikipedia search failed: {e}")
@@ -53,14 +50,12 @@ def wikipedia_search(query: str, num: int = 5, timeout: int = 8) -> Dict[str, An
 
 def searxng_search(query: str, num: int = 8, timeout: int = 10) -> Dict[str, Any]:
     """Query SearxNG JSON API; returns {'normalized': [...], 'raw': {...}}."""
-    headers = {"User-Agent": "islamic-qna-client", "Accept": "application/json"}
+    # ADDED USER-AGENT HEADER TO PREVENT 403 FORBIDDEN ERROR
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
     try:
         r = requests.get(
             config.SEARXNG_ENDPOINT,
-            params={
-                "q": query, "format": "json", "engines": config.SEARXNG_ENGINES,
-                "language": config.WIKIPEDIA_LANG, "safesearch": 1
-            },
+            params={"q": query, "format": "json", "engines": config.SEARXNG_ENGINES, "language": config.WIKIPEDIA_LANG, "safesearch": 1},
             headers=headers, timeout=timeout,
         )
         r.raise_for_status()
@@ -86,7 +81,6 @@ def tiered_web_search(query: str, k_basic: int = 5, k_adv: int = 8) -> str:
         if not pkg.get("normalized"):
             pkg = wikipedia_search(query, num=k_basic)
             
-    # Format the normalized results into a single string for the agent
     output_str = f"Search Level: {level}\n\n"
     if pkg.get("normalized"):
         for item in pkg["normalized"]:
