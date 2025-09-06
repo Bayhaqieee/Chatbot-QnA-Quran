@@ -1,91 +1,88 @@
 from __future__ import annotations
 import re
 import requests
-from typing import List, Dict, Any
+from typing import Dict, Any
 import config
 
-# Helpers
-_BASIC_PATTERNS = [
-    r"^\s*what\s+is\b", r"^\s*apa\s+itu\b", r"\bdefinition\b", r"\bdefine\b", r"\bpengertian\b",
-    r"\bwhat\s+does\s+.*\bmean\b"
+# Tiered search routing logic
+_WIKIPEDIA_PATTERNS = [
+    r"\b(history of|sejarah)\b", r"\b(who was|siapakah)\b", r"\b(when did|kapan)\b",
+    r"\b(biography of|biografi)\b", r"\b(battle of|perang)\b", r"event"
 ]
 
-def _classify(query: str) -> str:
+def _route_query(query: str) -> str:
+    """Routes query to either Wikipedia or SearxNG based on patterns."""
     q = (query or "").lower()
-    for pat in _BASIC_PATTERNS:
-        if re.search(pat, q):
-            return "basic"
-    return "intermediate"
+    if any(re.search(pat, q) for pat in _WIKIPEDIA_PATTERNS):
+        return "wikipedia"
+    return "searxng"
 
 def _trim_text(s: str, limit: int = 600) -> str:
     s = (s or "").strip()
     return s if len(s) <= limit else s[:limit - 1] + "…"
 
-# Providers
-def wikipedia_search(query: str, num: int = 5, timeout: int = 8) -> Dict[str, Any]:
-    """Query MediaWiki; returns {'normalized': [...], 'raw': {...}}."""
-    lang = getattr(config, "WIKIPEDIA_LANG", "en")
-    # ADDED USER-AGENT HEADER TO PREVENT 403 FORBIDDEN ERROR
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+# Search provider functions
+def wikipedia_search(query: str, num: int = 3, timeout: int = 8) -> Dict[str, Any]:
+    """Queries MediaWiki API."""
+    lang = config.WIKIPEDIA_LANG
+    headers = {'User-Agent': 'IslamicQnA-Agent/1.0'}
     try:
         r = requests.get(
             f"https://{lang}.wikipedia.org/w/api.php",
             params={"action": "query", "list": "search", "srsearch": query, "utf8": 1, "format": "json"},
-            timeout=timeout,
-            headers=headers
+            timeout=timeout, headers=headers
         )
         r.raise_for_status()
         data = r.json()
-        hits = ((data.get("query") or {}).get("search") or [])[:num]
+        hits = (data.get("query", {}).get("search", []))[:num]
         normalized = []
         for h in hits:
             title = h.get("title", "")
-            url = f"https://{lang}.wikipedia.org/wiki/" + title.replace(" ", "_")
-            snippet = (h.get("snippet", "").replace('<span class="searchmatch">', '').replace('</span>', ''))
+            url = f"https://{lang}.wikipedia.org/wiki/{title.replace(' ', '_')}"
+            snippet = re.sub('<[^<]+?>', '', h.get("snippet", ""))
             normalized.append({"title": title, "url": url, "snippet": _trim_text(snippet), "provider": "wikipedia"})
-        return {"normalized": normalized, "raw": {"hits": hits}}
+        return {"normalized": normalized}
     except Exception as e:
         print(f"Wikipedia search failed: {e}")
-        return {"normalized": [], "raw": {"error": "wikipedia_fetch_failed"}}
+        return {"normalized": []}
 
-def searxng_search(query: str, num: int = 8, timeout: int = 10) -> Dict[str, Any]:
-    """Query SearxNG JSON API; returns {'normalized': [...], 'raw': {...}}."""
-    # ADDED USER-AGENT HEADER TO PREVENT 403 FORBIDDEN ERROR
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+def searxng_search(query: str, num: int = 5, timeout: int = 10) -> Dict[str, Any]:
+    """Queries the self-hosted SearxNG JSON API using a POST request."""
+    headers = {"User-Agent": "IslamicQnA-Agent/1.0", "Accept": "application/json"}
+    # UPDATED: Using a POST request can be more reliable for avoiding blocks
+    params = {
+        "q": query, "format": "json", "engines": config.SEARXNG_ENGINES, "language": config.WIKIPEDIA_LANG
+    }
     try:
-        r = requests.get(
-            config.SEARXNG_ENDPOINT,
-            params={"q": query, "format": "json", "engines": config.SEARXNG_ENGINES, "language": config.WIKIPEDIA_LANG, "safesearch": 1},
-            headers=headers, timeout=timeout,
-        )
+        r = requests.post(config.SEARXNG_ENDPOINT, params=params, headers=headers, timeout=timeout)
         r.raise_for_status()
         data = r.json()
-        results = (data.get("results") or [])[:num]
+        results = (data.get("results", []))[:num]
         norm_items = [{"title": _trim_text(it.get("title")), "url": it.get("url", ""), "snippet": _trim_text(it.get("content")), "provider": "searxng"} for it in results]
-        return {"normalized": norm_items, "raw": data}
+        return {"normalized": norm_items}
     except Exception as e:
         print(f"SearxNG search failed: {e}")
-        return {"normalized": [], "raw": {"error": "searxng_fetch_failed"}}
+        return {"normalized": []}
 
-# Public API
-def tiered_web_search(query: str, k_basic: int = 5, k_adv: int = 8) -> str:
-    """Performs a tiered web search and returns a formatted string."""
-    level = _classify(query)
+# Main tool function (unchanged)
+def tiered_web_search(query: str) -> str:
+    """Performs a tiered web search and returns a formatted string for the agent."""
+    route = _route_query(query)
     pkg = {}
-    if level == "basic":
-        pkg = wikipedia_search(query, num=k_basic)
+    if route == "wikipedia":
+        pkg = wikipedia_search(query)
         if not pkg.get("normalized"):
-            pkg = searxng_search(query, num=k_adv)
+            pkg = searxng_search(query)
     else:
-        pkg = searxng_search(query, num=k_adv)
+        pkg = searxng_search(query)
         if not pkg.get("normalized"):
-            pkg = wikipedia_search(query, num=k_basic)
-            
-    output_str = f"Search Level: {level}\n\n"
+            pkg = wikipedia_search(query)
+
+    output_str = ""
     if pkg.get("normalized"):
         for item in pkg["normalized"]:
-            output_str += f"Title: {item['title']}\nURL: {item['url']}\nSnippet: {item['snippet']}\nProvider: {item['provider']}\n\n"
+            output_str += f"Title: {item['title']}\nURL: {item['url']}\nSnippet: {item['snippet']}\n\n"
     else:
-        output_str += "No results found."
+        output_str += "No results found from web search."
         
     return output_str

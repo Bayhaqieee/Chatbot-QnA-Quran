@@ -4,3 +4,4 @@ Agent/kaggle.json
 Agent/volumes/
 Agent/__pycache__/
 Agent/datasets/
+Agent/searxng/

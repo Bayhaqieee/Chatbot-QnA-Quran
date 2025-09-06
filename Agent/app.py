@@ -17,13 +17,13 @@ def initialize():
     """Initializes the crew once before the first request."""
     global crew
     if crew is None and request.endpoint not in ['ingest', 'static']:
-        print("--- First time setup: Initializing Crew ---")
+        print("First time setup: Initializing Crew ")
         retrievers = vector_store.get_milvus_retrievers()
         if retrievers and all(retrievers):
             crew = crew_setup.create_crew(*retrievers)
-            print("--- Crew Initialized Successfully ---")
+            print("Crew Initialized Successfully ")
         else:
-            print("--- Crew Initialization Failed: Retrievers not available. ---")
+            print("Crew Initialization Failed: Retrievers not available. ")
 
 @app.route('/')
 def index():
@@ -37,28 +37,34 @@ def ask_question():
     if not crew:
         return jsonify({"error": "Crew not ready. Please ingest data via the /ingest endpoint."}), 500
     try:
+        # The result is a CrewOutput object, not a simple string
         result = crew.kickoff(inputs={'topic': topic})
+
+        # The raw output from the last agent is in the .raw attribute
+        # We instructed this agent to produce a JSON string.
+        raw_json_output = result.raw
+        
         try:
-            # The agent is now forced to output JSON, so we can parse it
-            answer_json = json.loads(str(result))
-            return jsonify(answer_json)
+            # Parse the string into a dictionary to send as proper JSON
+            answer_dict = json.loads(raw_json_output)
+            return jsonify(answer_dict)
         except json.JSONDecodeError:
             # Fallback if the agent fails to produce perfect JSON
-            return jsonify({"answer": str(result)})
+            return jsonify({"status": "error", "answer": raw_json_output})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/ingest')
 def ingest():
-    """One-time endpoint to trigger data download and batched ingestion into Milvus."""
+    """One-time endpoint for data download and ingestion."""
     try:
         quran_chunks, hadith_chunks = data_pipeline.load_and_chunk_data()
         if not quran_chunks or not hadith_chunks:
             return "Failed to load/chunk data.", 500
         vector_store.ingest_data_to_milvus(config.QURAN_COLLECTION, quran_chunks)
         vector_store.ingest_data_to_milvus(config.HADITH_COLLECTION, hadith_chunks)
-        return "Data ingestion complete! You can now use the main application.", 200
+        return "Data ingestion complete!", 200
     except Exception as e:
         error_message = f"An error occurred during ingestion: {type(e).__name__} - {e}"
         print(error_message)
