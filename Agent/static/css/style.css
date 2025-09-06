@@ -1,0 +1,218 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --bg-dark: #131314;
+  --surface-dark: #1e1f20;
+  --text-primary: #e3e3e3;
+  --text-secondary: #9aa0a6;
+  --border-color: #3c4043;
+  --accent-green: #34a853;
+  --accent-yellow: #fbbc05;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.main-container {
+  width: 100%;
+  max-width: 900px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.main-header {
+  text-align: center;
+  padding: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.chat-area {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+.message-wrapper {
+  margin-bottom: 2rem;
+  max-width: 100%;
+}
+.message-header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.message-header.ai-header {
+  color: var(--text-primary);
+}
+.message-header.user-header {
+  color: #8ab4f8;
+  justify-content: flex-end;
+}
+.message-content.user {
+  background-color: #2a2b2c;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-left: auto;
+  max-width: 80%;
+  line-height: 1.6;
+}
+.ai-response {
+  line-height: 1.7;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Adds spacing between components */
+}
+.sources-quote {
+  border-left: 3px solid var(--accent-yellow);
+  padding-left: 1rem;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+.sources-quote ul {
+  list-style-position: inside;
+  padding-left: 0;
+}
+.thinking-dropdown details {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+.thinking-dropdown summary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.thinking-dropdown summary .icon {
+  transition: transform 0.2s;
+}
+.thinking-dropdown details[open] summary .icon {
+  transform: rotate(180deg);
+}
+.thinking-dropdown-content {
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-color);
+}
+.web-sources-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.web-sources-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.web-source-card {
+  background-color: var(--surface-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: background-color 0.2s;
+}
+.web-source-card:hover {
+  background-color: #2a2b2c;
+}
+.input-container {
+  padding: 1rem;
+  width: 100%;
+  flex-shrink: 0;
+  background-color: var(--bg-dark);
+}
+.prompt-suggestions-wrapper {
+  margin-bottom: 1rem;
+}
+.prompt-suggestions-wrapper details summary {
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+}
+.prompt-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start; /* Aligns cards to the left */
+  padding-top: 1rem;
+}
+.suggestion-card {
+  background-color: var(--surface-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem; /* Smaller font size */
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.suggestion-card:hover {
+  background-color: #2a2b2c;
+}
+.input-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  background-color: var(--surface-dark);
+  padding: 0.5rem;
+  border-radius: 28px;
+}
+textarea {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  resize: none;
+  max-height: 150px;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+textarea:focus {
+  outline: none;
+}
+button#askButton {
+  background-color: var(--accent-green);
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+button#askButton:disabled {
+  background-color: var(--text-secondary);
+  cursor: not-allowed;
+}
+.loader-wrapper {
+  padding: 1rem;
+  color: var(--text-secondary);
+}
