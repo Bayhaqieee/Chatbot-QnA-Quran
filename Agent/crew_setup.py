@@ -2,31 +2,46 @@ from crewai import Agent, Task, Crew, Process
 from crewai.tools import BaseTool
 from langchain_openai import AzureChatOpenAI
 import config
-from search_tools import tiered_web_search
+from search_tools import unified_search # Import the new unified search function
 
-class ReligiousTextSearchTool(BaseTool):
-    name: str = "Religious Text Search Tool"
-    description: str = "Searches Qur'an and Hadith vectorstores for texts relevant to a query."
+class KnowledgeBaseTool(BaseTool):
+    name: str = "Knowledge Base Search Tool"
+    description: str = "Searches the complete knowledge base, including religious texts (Quran, Hadith) and the web (Wikipedia, SearxNG), for information relevant to a query."
     quran_retriever: object
     hadith_retriever: object
 
     def _run(self, query: str) -> str:
+        # 1. Search religious texts from Milvus
         quran_results = self.quran_retriever.invoke(query)
         hadith_results = self.hadith_retriever.invoke(query)
-        quran_context = "\n\n".join([doc.page_content for doc in quran_results])
-        hadith_context = "\n\n".join([doc.page_content for doc in hadith_results])
-        return f"QURANIC SOURCES:\n{quran_context}\n\nHADITH SOURCES:\n{hadith_context}"
+        
+        # 2. Search the web using our unified search function
+        web_search_output = unified_search(query)
+        web_results = web_search_output.get("web_results", [])
 
-class AdvancedWebSearchTool(BaseTool):
-    name: str = "Advanced Web Search Tool"
-    description: str = "Performs a tiered web search using Wikipedia and SearxNG for contemporary views, articles, and fatwas."
-    def _run(self, query: str) -> str:
-        return tiered_web_search(query)
+        # 3. Combine all results into a single context string
+        context = "--- RELIGIOUS TEXTS ---\n"
+        for doc in quran_results:
+            context += f"Source: Quran\nContent: {doc.page_content}\n\n"
+        for doc in hadith_results:
+            context += f"Source: Hadith\nContent: {doc.page_content}\n\n"
+        
+        context += "\n--- WEB RESULTS ---\n"
+        if web_results:
+            for item in web_results:
+                context += f"Title: {item['title']}\nURL: {item['url']}\nSnippet: {item['snippet']}\nProvider: {item['provider']}\n\n"
+        else:
+            context += "No relevant web results found.\n"
+            
+        return context
 
 def create_crew(quran_retriever, hadith_retriever):
-    """Creates and configures the crewAI crew with agents, tasks, and tools."""
-    advanced_search_tool = AdvancedWebSearchTool()
-    religious_search_tool = ReligiousTextSearchTool(quran_retriever=quran_retriever, hadith_retriever=hadith_retriever)
+    """Creates and configures the simplified two-agent crew."""
+    
+    knowledge_base_tool = KnowledgeBaseTool(
+        quran_retriever=quran_retriever, 
+        hadith_retriever=hadith_retriever
+    )
     
     llm = AzureChatOpenAI(
         azure_deployment=config.AZURE_CHAT_DEPLOYMENT_NAME,
@@ -37,42 +52,54 @@ def create_crew(quran_retriever, hadith_retriever):
         model=f"azure/{config.AZURE_CHAT_DEPLOYMENT_NAME}"
     )
 
-    researcher = Agent(role='Primary Source Researcher', goal='Find foundational texts about {topic}.', backstory='Expert in Islamic scriptures.', tools=[religious_search_tool], llm=llm, verbose=True)
-    validator = Agent(role='Contemporary Validator', goal='Find contemporary views on {topic}.', backstory='Meticulous web researcher.', tools=[advanced_search_tool], llm=llm, verbose=True)
+    # Agent 1: The Researcher (gathers all info)
+    researcher = Agent(
+        role='Comprehensive Islamic Researcher',
+        goal='Gather all relevant information from both religious texts and the web to answer the user\'s query about {topic}.',
+        backstory='An expert researcher skilled at querying both scriptural databases and online sources to build a complete picture of any given topic.',
+        tools=[knowledge_base_tool],
+        llm=llm,
+        verbose=True
+    )
     
-    # UPDATED SYNTHESIS AGENT AND TASK
+    # Agent 2: The Synthesizer (builds the final JSON answer)
     json_schema = """{
         "status": "ok" | "insufficient_data",
         "language": "en" | "id",
-        "answer": "Natural, helpful reply in user's language.",
-        "chain_of_thought": "Step-by-step reasoning based ONLY on allowed sources.",
-        "sources": ["Exact quotes or crisp paraphrases from Quran/Hadith or web snippets you actually used."],
+        "answer": "Natural, helpful reply in user's language, summarizing all findings.",
+        "chain_of_thought": "Step-by-step reasoning based ONLY on the provided context from the researcher.",
+        "sources": ["List of key points or brief quotes from the RELIGIOUS TEXTS section."],
         "web_sources": [{"title":"...", "url":"...", "snippet":"...", "provider":"wikipedia|searxng"}],
-        "follow_up_questions": ["Question 1", "Question 2"]
+        "follow_up_questions": ["Suggest 2-3 relevant follow-up questions."]
     }"""
 
     synthesizer = Agent(
-        role='Synthesis Agent',
-        goal='Craft a comprehensive, balanced, and well-structured answer to the user\'s query on {topic}, integrating primary sources and contemporary views.',
-        backstory='A master communicator skilled at synthesizing complex information into a clear and nuanced response. Your final output MUST be a single, valid JSON object matching the provided schema.',
-        llm=llm, verbose=True
+        role='Expert Islamic QnA Synthesizer',
+        goal='Craft a comprehensive, balanced, and well-structured JSON answer to the user\'s query on {topic} using ONLY the context provided.',
+        backstory='A master communicator skilled at synthesizing complex religious and secular information into a clear, final JSON object. You never use tools, you only format the final answer.',
+        llm=llm,
+        verbose=True
     )
 
-    research_task = Task(description='Search for primary texts (Qur\'an and Hadith) related to the topic: {topic}.', expected_output='A compiled list of relevant verses and hadiths.', agent=researcher)
-    validation_task = Task(description='Search the web for contemporary opinions and fatwas on the topic: {topic}.', expected_output='A summary of key findings from reliable online sources.', agent=validator)
+    # Define Tasks for the simplified crew
+    research_task = Task(
+        description='Use your tool to conduct a comprehensive search on the user\'s topic: {topic}.',
+        expected_output='A complete context block containing all relevant information from religious texts and web sources.',
+        agent=researcher
+    )
     
     synthesis_task = Task(
         description=f"""
-        Analyze the primary religious sources and contemporary web findings provided by the other agents.
-        Synthesize them into a single, comprehensive answer that addresses the user's query on {{topic}}.
-        Your entire response MUST be a single, valid JSON object matching this exact schema. Do not add any other text.
+        Analyze the complete context provided by the researcher.
+        Synthesize all information into a single, comprehensive answer that addresses the user's query on {{topic}}.
+        Your entire response MUST be a single, valid JSON object matching this exact schema. Do not add any other text or markdown formatting.
         
         JSON Schema:
         {json_schema}
         """,
         expected_output='A final, curated answer in a single valid JSON object based on the provided schema.',
         agent=synthesizer,
-        context=[research_task, validation_task]
+        context=[research_task] # Only depends on the researcher's complete output
     )
 
-    return Crew(agents=[researcher, validator, synthesizer], tasks=[research_task, validation_task, synthesis_task], process=Process.sequential, verbose=True)
+    return Crew(agents=[researcher, synthesizer], tasks=[research_task, synthesis_task], process=Process.sequential, verbose=True)
