@@ -6,11 +6,12 @@
     <title>Islamic QnA RAG System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
 </head>
 <body>
     <div class="main-container">
         <header class="main-header">
-            <h1>Islamic QnA RAG System</h1>
+            <h1>HijrahBot</h1>
         </header>
         <div class="chat-area" id="chat-area">
             <div class="message-wrapper">
@@ -24,7 +25,7 @@
             </div>
         <div class="input-container">
             <div class="prompt-suggestions-wrapper" id="prompt-suggestions-wrapper" style="display: none;">
-                <details>
+                <details open>
                     <summary>Prompt Suggestions</summary>
                     <div class="prompt-suggestions" id="prompt-suggestions">
                         </div>
@@ -38,19 +39,6 @@
             </form>
         </div>
     </div>
-
-    <template id="ai-response-template">
-        <div class="message-wrapper">
-            <div class="message-header ai-header"><i class="fas fa-robot"></i> AI Team</div>
-            <div class="ai-response">
-                <div class="thinking-dropdown" data-container="chain-of-thought" style="display: none;"></div>
-                <div class="sources-quote" data-container="sources-quote" style="display: none;"></div>
-                <div class="answer" data-container="answer"></div>
-                <div class="web-sources-container" data-container="web-sources" style="display: none;"></div>
-            </div>
-        </div>
-    </template>
-
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

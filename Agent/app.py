@@ -8,6 +8,7 @@ import config
 import data_pipeline
 import vector_store
 import crew_setup
+from personality import handle_small_talk
 
 app = Flask(__name__)
 crew = None
@@ -17,13 +18,13 @@ def initialize():
     """Initializes the crew once before the first request."""
     global crew
     if crew is None and request.endpoint not in ['ingest', 'static']:
-        print("First time setup: Initializing Crew ")
+        print("--- First time setup: Initializing Crew ---")
         retrievers = vector_store.get_milvus_retrievers()
         if retrievers and all(retrievers):
             crew = crew_setup.create_crew(*retrievers)
-            print("Crew Initialized Successfully ")
+            print("--- Crew Initialized Successfully ---")
         else:
-            print("Crew Initialization Failed: Retrievers not available. ")
+            print("--- Crew Initialization Failed: Retrievers not available. ---")
 
 @app.route('/')
 def index():
@@ -34,26 +35,35 @@ def ask_question():
     topic = request.json.get('topic')
     if not topic:
         return jsonify({"error": "'topic' is required."}), 400
+
+    small_talk_response = handle_small_talk(topic)
+    if small_talk_response:
+        print("Handling request as small talk.")
+        return jsonify(small_talk_response)
+    
     if not crew:
-        return jsonify({"error": "Crew not ready. Please ingest data via the /ingest endpoint."}), 500
-    try:
-        # The result is a CrewOutput object, not a simple string
-        result = crew.kickoff(inputs={'topic': topic})
-
-        # The raw output from the last agent is in the .raw attribute
-        # We instructed this agent to produce a JSON string.
-        raw_json_output = result.raw
+        return jsonify({"status": "error", "answer": "Crew not initialized. Please ensure data has been ingested via the /ingest endpoint."}), 500
         
-        try:
-            # Parse the string into a dictionary to send as proper JSON
-            answer_dict = json.loads(raw_json_output)
-            return jsonify(answer_dict)
-        except json.JSONDecodeError:
-            # Fallback if the agent fails to produce perfect JSON
-            return jsonify({"status": "error", "answer": raw_json_output})
+    try:
+        print("Passing request to AI Crew...")
+        result = crew.kickoff(inputs={'topic': topic})
+        
+        # Ensure the final output is always a parsable JSON
+        raw_output = result.raw
+        
+        # Clean the output string: remove markdown backticks and the word "json"
+        cleaned_output = raw_output.strip().replace('```json', '').replace('```', '').strip()
+        
+        answer_dict = json.loads(cleaned_output)
+        return jsonify(answer_dict)
 
+    except json.JSONDecodeError:
+        # If parsing fails, wrap the raw text in our standard error format
+        print(f"JSONDecodeError: Could not parse the crew's output: {raw_output}")
+        return jsonify({"status": "error", "answer": "The AI response was not in a valid format. Please try rephrasing your question."})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"An unexpected error occurred: {e}")
+        return jsonify({"status": "error", "answer": f"An unexpected error occurred: {e}"}), 500
 
 @app.route('/ingest')
 def ingest():
