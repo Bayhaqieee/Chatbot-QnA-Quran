@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- The title will be set by the child template -->
+    <title>{% block title %}BaseeraAI{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <!-- The Showdown library is only needed for the chat page -->
+    {% if request.endpoint == 'chat_page' %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    {% endif %}
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-moon"></i>
+                <h2>Baseera</h2>
+            </div>
+            <ul>
+                <!-- Check which page is active and apply the 'active' class -->
+                <li class="{{ 'active' if request.endpoint == 'chat_page' else '' }}">
+                    <a href="{{ url_for('chat_page') }}"><i class="fas fa-comments"></i> Chatbot</a>
+                </li>
+                <li class="{{ 'active' if request.endpoint == 'quran_page' else '' }}">
+                    <a href="{{ url_for('quran_page') }}"><i class="fas fa-quran"></i> Quran</a>
+                </li>
+                <li class="{{ 'active' if request.endpoint == 'hadith_page' else '' }}">
+                    <a href="{{ url_for('hadith_page') }}"><i class="fas fa-book-open"></i> Hadith</a>
+                </li>
+            </ul>
+        </nav>
+        <div class="main-content">
+            <!-- This is where the content of chat.html, quran.html, etc. will be injected -->
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- The specific JS for each page will be loaded in the child template -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

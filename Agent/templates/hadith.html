@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}BaseeraAI - Hadith Dictionary{% endblock %}
+
+{% block content %}
+<div class="dictionary-container">
+    <header class="main-header">
+        <h1>Hadith Dictionary</h1>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search by source, chapter, or content...">
+        </div>
+    </header>
+    <div class="dictionary-content" id="dictionary-content">
+        {% for item in hadith_data %}
+        <div class="dictionary-card">
+            <div class="card-header">
+                <h3>{{ item.source }} - {{ item.chapter }}</h3>
+            </div>
+            <p>{{ item.text_en }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dictionary.js') }}"></script>
+{% endblock %}
