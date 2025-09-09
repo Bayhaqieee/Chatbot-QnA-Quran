@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const suggestionsWrapper = document.getElementById('prompt-suggestions-wrapper');
     const suggestionsContainer = document.getElementById('prompt-suggestions');
     
-    // Initialize the Showdown markdown converter
     const converter = new showdown.Converter();
 
     topicInput.addEventListener('input', () => {
@@ -78,9 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayAiResponse(data) {
         const thinkingHtml = (data.chain_of_thought) ? `<div class="thinking-dropdown"><details><summary>Show thinking <i class="fas fa-chevron-down icon"></i></summary><div class="thinking-dropdown-content">${data.chain_of_thought}</div></details></div>` : '';
-        const sourcesHtml = (data.sources && data.sources.length > 0) ? `<div class="sources-quote"><ul>${data.sources.map(s => `<li>“${s}”</li>`).join('')}</ul></div>` : '';
         
-        // Convert the markdown answer to HTML before displaying it
+        // UPDATED: Use <p> tags instead of <ul><li> for the quotes to remove bullet points
+        const sourcesHtml = (data.sources && data.sources.length > 0) ? `<div class="sources-quote">${data.sources.map(s => `<p>“${s}”</p>`).join('')}</div>` : '';
+
         const answerHtml = data.answer ? `<div class="answer">${converter.makeHtml(data.answer)}</div>` : '<div class="answer"><p>No answer provided.</p></div>';
 
         let webSourcesHtml = '';
