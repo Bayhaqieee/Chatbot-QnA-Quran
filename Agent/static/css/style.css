@@ -182,6 +182,7 @@ body {
   gap: 0.5rem;
   justify-content: flex-start;
   padding-top: 1rem;
+  padding-bottom: 0.5rem;
 }
 .suggestion-card {
   background-color: var(--surface-dark);
