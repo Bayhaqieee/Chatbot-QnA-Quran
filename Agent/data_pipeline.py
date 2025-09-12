@@ -4,7 +4,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import kaggle
 import pandas as pd
 
-# --- All other functions (check_kaggle_api, download_and_extract_datasets, etc.) remain unchanged ---
+# --- Other functions (check_kaggle_api, download_and_extract_datasets, etc.) remain unchanged. ---
+
 def check_kaggle_api():
     """Checks if the Kaggle API key is correctly placed in the home directory."""
     kaggle_dir = os.path.expanduser('~/.kaggle')
@@ -46,23 +47,26 @@ def load_quran_for_dictionary():
     """Loads and prepares the Quran dataset for the dictionary view, including Arabic text."""
     try:
         df = pd.read_csv('datasets/main_df.csv')
-        # UPDATED: Added the 'Arabic' column to the selection
         quran_data = df[['EnglishTitle', 'Surah', 'Ayat', 'Arabic', 'Translation - Arthur J']].rename(columns={
-            'EnglishTitle': 'surah_name',
-            'Surah': 'surah_number',
-            'Ayat': 'ayat_number',
-            'Arabic': 'arabic_text',
-            'Translation - Arthur J': 'translation'
+            'EnglishTitle': 'surah_name', 'Surah': 'surah_number', 'Ayat': 'ayat_number', 'Arabic': 'arabic_text', 'Translation - Arthur J': 'translation'
         })
         return quran_data.to_dict(orient='records')
     except FileNotFoundError:
         return []
 
 def load_hadith_for_dictionary():
-    """Loads and prepares the Hadith dataset for the dictionary view."""
+    """Loads and prepares the Hadith dataset with all details for the dictionary view."""
     try:
         df = pd.read_csv('datasets/all_hadiths_clean.csv')
-        hadith_data = df[['source', 'chapter', 'text_en']].fillna('N/A')
+        # UPDATED: Select all required columns and rename for consistency
+        hadith_data = df[[
+            'source', 'chapter_no', 'hadith_no', 'chapter', 'text_ar', 'text_en'
+        ]].rename(columns={
+            'chapter_no': 'chapter_number',
+            'hadith_no': 'hadith_number',
+            'text_ar': 'arabic_text',
+            'text_en': 'english_text'
+        }).fillna('Not Available') # Handle any potential missing values gracefully
         return hadith_data.to_dict(orient='records')
     except FileNotFoundError:
         return []
