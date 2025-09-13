@@ -8,7 +8,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i];
-            const cardText = card.textContent || card.innerText;
+            // Get the always-visible summary element for searching
+            const summary = card.querySelector('summary');
+            let cardText = '';
+
+            if (summary) {
+                // If it's a collapsible card, search only the summary
+                cardText = summary.textContent || summary.innerText;
+            } else {
+                // Fallback for non-collapsible cards
+                cardText = card.textContent || card.innerText;
+            }
+
             if (cardText.toLowerCase().indexOf(searchTerm) > -1) {
                 card.style.display = "";
             } else {

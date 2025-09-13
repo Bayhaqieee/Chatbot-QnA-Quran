@@ -8,17 +8,26 @@
         <h1>Quran Dictionary</h1>
         <div class="search-bar">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search by Surah name, number, or content...">
+            <input type="text" id="searchInput" placeholder="Search by Surah name or number...">
         </div>
     </header>
     <div class="dictionary-content" id="dictionary-content">
-        {% for item in quran_data %}
-        <div class="dictionary-card">
-            <div class="card-header">
-                <h3>{{ item.surah_name }} ({{ item.surah_number }}:{{ item.ayat_number }})</h3>
-            </div>
-            <h4 class="arabic-text">{{ item.arabic_text }}</h4>
-            <p>{{ item.translation }}</p>
+        {% for surah in quran_data %}
+        <div class="dictionary-card quran-card">
+            <details>
+                <summary class="card-header">
+                    <h3>{{ surah.surah_number }}. {{ surah.surah_name }}</h3>
+                </summary>
+                <div class="card-body">
+                    {% for verse in surah.verses %}
+                    <div class="verse-item">
+                        <div class="verse-meta">Ayat {{ verse.ayat_number }}</div>
+                        <p class="arabic-text">{{ verse.arabic_text }}</p>
+                        <p>{{ verse.translation }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </details>
         </div>
         {% endfor %}
     </div>

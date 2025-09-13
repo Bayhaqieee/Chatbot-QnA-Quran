@@ -231,6 +231,7 @@ button#askButton {
   align-items: center;
   transition: background-color 0.2s;
 }
+
 .dictionary-content { 
   overflow-y: auto; 
   padding: 1.5rem; 
@@ -249,18 +250,18 @@ button#askButton {
   border-radius: 24px; 
   border: 1px solid var(--border-color); 
   background-color: var(--surface-dark); 
-  color: var(--text-primary); font-size: 1rem; 
+  color: var(--text-primary); 
+  font-size: 1rem; 
 }
 
 .search-bar i { 
   position: absolute; 
-  left: 1rem; 
-  top: 50%; 
-  transform: translateY(-50%); 
+  left: 1rem; top: 50%; 
+  transform: 
+  translateY(-50%); 
   color: var(--text-secondary); 
 }
 
-/* General Dictionary Card Style */
 .dictionary-card { 
   background-color: var(--surface-dark); 
   border: 1px solid var(--border-color); 
@@ -283,35 +284,26 @@ button#askButton {
   line-height: 2.5rem; 
 }
 
-
-.dictionary-card:not(.hadith-card) { 
-  padding: 1.5rem; 
-}
-
-.dictionary-card:not(.hadith-card) .card-header { 
-  border-bottom: 1px solid var(--border-color); 
-  padding-bottom: .75rem; 
-  margin-bottom: 1rem; 
-}
-
-.dictionary-card:not(.hadith-card) h3 { 
-  font-size: 1.1rem; 
+.card-body { 
+  padding: 0 1.5rem 1.5rem 1.5rem; 
+  border-top: 1px solid var(--border-color); 
 }
 
 .hadith-card { 
   padding: 0; 
 }
 
-.hadith-card details summary { 
+.hadith-card details summary, .quran-card details summary { 
   list-style: none; 
   cursor: pointer; 
   padding: 1.5rem; 
   display: flex; 
-  justify-content: space-between; 
+  justify-content: 
+  space-between; 
   align-items: center; 
 }
 
-.hadith-card details summary::-webkit-details-marker { 
+.hadith-card details summary::-webkit-details-marker, .quran-card details summary::-webkit-details-marker { 
   display: none; 
 }
 
@@ -333,18 +325,44 @@ button#askButton {
   text-align: right; 
 }
 
-.hadith-card .card-body { 
-  padding: 0 1.5rem 1.5rem 1.5rem; 
-  border-top: 1px solid var(--border-color); }
-
-.hadith-card summary::after { 
-  content: '▼';
+.hadith-card summary::after, .quran-card summary::after { 
+  content: '▼'; 
   font-size: 0.8rem; 
   color: var(--text-secondary); 
   transition: transform 0.2s; 
   margin-left: 1rem; 
 }
 
-.hadith-card details[open] summary::after { 
+.hadith-card details[open] summary::after, .quran-card details[open] summary::after { 
   transform: rotate(180deg); 
+}
+
+.quran-card { 
+  padding: 0; 
+}
+
+.quran-card h3 { 
+  font-size: 1.2rem; 
+  font-weight: 500; 
+}
+
+.quran-card .verse-item { 
+  padding: 1.5rem 0; 
+  border-bottom: 1px solid var(--border-color); 
+}
+
+.quran-card .verse-item:first-child { 
+  padding-top: 1rem; 
+}
+
+.quran-card .verse-item:last-child { 
+  border-bottom: none; 
+  padding-bottom: 0; 
+}
+
+.quran-card .verse-meta { 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  color: var(--accent-yellow); 
+  margin-bottom: 1rem; 
 }

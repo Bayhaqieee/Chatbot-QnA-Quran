@@ -4,20 +4,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import kaggle
 import pandas as pd
 
-# --- Other functions (check_kaggle_api, download_and_extract_datasets, etc.) remain unchanged. ---
-
 def check_kaggle_api():
-    """Checks if the Kaggle API key is correctly placed in the home directory."""
     kaggle_dir = os.path.expanduser('~/.kaggle')
     api_key_path = os.path.join(kaggle_dir, 'kaggle.json')
     if not os.path.exists(api_key_path):
-        raise FileNotFoundError(
-            f"Kaggle API key not found. Please manually place your 'kaggle.json' file "
-            f"in the correct directory: '{kaggle_dir}'. You can download this file from your Kaggle account settings."
-        )
+        raise FileNotFoundError(f"Kaggle API key not found. Please place 'kaggle.json' in '{kaggle_dir}'.")
 
 def download_and_extract_datasets():
-    """Downloads and extracts datasets from Kaggle if they don't already exist."""
     datasets_dir = 'datasets'
     os.makedirs(datasets_dir, exist_ok=True)
     hadith_path = os.path.join(datasets_dir, 'all_hadiths_clean.csv')
@@ -32,7 +25,6 @@ def download_and_extract_datasets():
             os.rename(os.path.join(datasets_dir, 'data', 'main_df.csv'), quran_path)
 
 def load_and_chunk_data():
-    """Loads data from local CSVs and splits them into chunks for the AI."""
     print("--- Loading and Processing Data for AI ---")
     check_kaggle_api()
     download_and_extract_datasets()
@@ -44,13 +36,25 @@ def load_and_chunk_data():
     return quran_chunks, hadith_chunks
 
 def load_quran_for_dictionary():
-    """Loads and prepares the Quran dataset for the dictionary view, including Arabic text."""
+    """Loads and groups the Quran dataset by Surah for the dictionary view."""
     try:
         df = pd.read_csv('datasets/main_df.csv')
-        quran_data = df[['EnglishTitle', 'Surah', 'Ayat', 'Arabic', 'Translation - Arthur J']].rename(columns={
+        df_renamed = df[['EnglishTitle', 'Surah', 'Ayat', 'Arabic', 'Translation - Arthur J']].rename(columns={
             'EnglishTitle': 'surah_name', 'Surah': 'surah_number', 'Ayat': 'ayat_number', 'Arabic': 'arabic_text', 'Translation - Arthur J': 'translation'
         })
-        return quran_data.to_dict(orient='records')
+        
+        # Group verses by Surah
+        grouped = df_renamed.groupby(['surah_number', 'surah_name'])
+        surahs_list = []
+        for (surah_number, surah_name), group in grouped:
+            surah_info = {
+                'surah_number': surah_number,
+                'surah_name': surah_name,
+                'verses': group.to_dict('records')
+            }
+            surahs_list.append(surah_info)
+            
+        return surahs_list
     except FileNotFoundError:
         return []
 
@@ -58,15 +62,9 @@ def load_hadith_for_dictionary():
     """Loads and prepares the Hadith dataset with all details for the dictionary view."""
     try:
         df = pd.read_csv('datasets/all_hadiths_clean.csv')
-        # UPDATED: Select all required columns and rename for consistency
-        hadith_data = df[[
-            'source', 'chapter_no', 'hadith_no', 'chapter', 'text_ar', 'text_en'
-        ]].rename(columns={
-            'chapter_no': 'chapter_number',
-            'hadith_no': 'hadith_number',
-            'text_ar': 'arabic_text',
-            'text_en': 'english_text'
-        }).fillna('Not Available') # Handle any potential missing values gracefully
+        hadith_data = df[['source', 'chapter_no', 'hadith_no', 'chapter', 'text_ar', 'text_en']].rename(columns={
+            'chapter_no': 'chapter_number', 'hadith_no': 'hadith_number', 'text_ar': 'arabic_text', 'text_en': 'english_text'
+        }).fillna('Not Available')
         return hadith_data.to_dict(orient='records')
     except FileNotFoundError:
         return []
