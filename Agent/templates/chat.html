@@ -1,12 +1,8 @@
 {% extends "layout.html" %}
-
 {% block title %}BaseeraAI - Chatbot{% endblock %}
-
 {% block content %}
 <div class="chat-container">
-    <header class="main-header">
-        <h1>Baseera - ChatBot</h1>
-    </header>
+    <!-- Header has been removed -->
     <div class="chat-area" id="chat-area">
         <div class="message-wrapper">
             <div class="message-header ai-header"><i class="fas fa-robot"></i> AI Team</div>
@@ -26,7 +22,6 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 {% endblock %}

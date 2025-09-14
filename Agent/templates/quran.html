@@ -1,16 +1,11 @@
 {% extends "layout.html" %}
-
 {% block title %}BaseeraAI - Quran Dictionary{% endblock %}
-
 {% block content %}
 <div class="dictionary-container">
-    <header class="main-header">
-        <h1>Quran Dictionary</h1>
-        <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Search by Surah name or number...">
-        </div>
-    </header>
+    <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search by Surah name or number...">
+    </div>
     <div class="dictionary-content" id="dictionary-content">
         {% for surah in quran_data %}
         <div class="dictionary-card quran-card">
@@ -33,7 +28,6 @@
     </div>
 </div>
 {% endblock %}
-
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/dictionary.js') }}"></script>
 {% endblock %}
