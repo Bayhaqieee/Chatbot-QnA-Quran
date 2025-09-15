@@ -48,6 +48,19 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color
 .chat-container, .dictionary-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
 .main-header { display: none; }
 .chat-area { flex-grow: 1; overflow-y: auto; padding: 1.5rem; max-width: 900px; width: 100%; margin: 0 auto; }
+.message-wrapper { margin-bottom: 0.5rem; max-width: 85%; }
+.user-message-wrapper, .ai-message-wrapper { display: flex; margin-bottom: 2rem; }
+.user-message-wrapper { justify-content: flex-end; }
+.ai-message-wrapper { justify-content: flex-start; }
+.message-header { font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.user-bubble { background-color: var(--accent-green); color: #ffffff; padding: 0.75rem 1.25rem; border-radius: 18px; line-height: 1.6; }
+.ai-response { line-height: 1.7; display: flex; flex-direction: column; gap: 1.5rem; background-color: var(--surface-dark); padding: 1rem; border-radius: 12px; }
+.input-container { padding: 1rem; width: 100%; max-width: 900px; margin: 0 auto; flex-shrink: 0; background-color: var(--bg-dark); }
+.input-form { display: flex; align-items: flex-end; gap: .75rem; background-color: var(--surface-dark); padding: .5rem; border-radius: 28px; }
+textarea { flex-grow: 1; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 1rem; resize: none; max-height: 150px; overflow-y: auto; padding: .75rem; }
+textarea:focus { outline: none; }
+button#askButton { background-color: var(--accent-green); color: var(--bg-dark); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; display: flex; justify-content: center; align-items: center; transition: background-color .2s; }
+.loader-wrapper { padding: 1rem; color: var(--text-secondary); }
 .input-container { padding: 1rem; width: 100%; max-width: 900px; margin: 0 auto; flex-shrink: 0; background-color: var(--bg-dark); }
 .dictionary-content { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
 .search-bar { padding: 1.5rem 1.5rem 0; position: relative; width: 100%; max-width: 700px; margin: 0 auto; flex-shrink: 0; }
