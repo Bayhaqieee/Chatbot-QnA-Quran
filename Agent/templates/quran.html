@@ -5,8 +5,10 @@
     <div class="search-bar">
         <i class="fas fa-search"></i>
         <input type="text" id="searchInput" placeholder="Search by Surah name or number...">
+        <div id="searchError" class="search-error-message"></div>
     </div>
     <div class="dictionary-content" id="dictionary-content">
+        <div id="noResultsMessage" class="no-results-message"></div>
         {% for surah in quran_data %}
         <div class="dictionary-card quran-card">
             <details>
