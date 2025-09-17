@@ -7,43 +7,87 @@ document.addEventListener('DOMContentLoaded', () => {
     let searchTimeout;
 
     searchInput.addEventListener('input', (event) => {
-        const originalSearchTerm = event.target.value;
-        // Sanitize the search term to remove special characters for matching
-        const searchTerm = originalSearchTerm.replace(/[^a-zA-Z0-9 ]/g, "").toLowerCase();
+        const originalSearchTerm = event.target.value.trim();
 
+        // Clear previous timeouts and messages
         clearTimeout(searchTimeout);
-
         searchError.classList.remove('visible');
-        searchError.textContent = '';
         noResultsMessage.style.display = 'none';
 
-        // Perform validation on the cleaned search term
-        if (searchTerm.length > 0 && searchTerm.length < 3) {
+        // Reset the state of all cards before applying new filters
+        for (const card of cards) {
+            card.style.display = "";
+            const details = card.querySelector('details');
+            if (details) details.open = false;
+            card.querySelectorAll('.verse-item').forEach(v => v.style.display = "");
+        }
+
+        // If search is empty, show all and do nothing else
+        if (originalSearchTerm === "") {
+            return;
+        }
+
+        // --- Use Case 3: Specific Verse Search (e.g., "18:1") ---
+        if (/^\d+:\d+$/.test(originalSearchTerm)) {
+            const [searchSurah, searchAyah] = originalSearchTerm.split(':');
+            let itemFound = false;
+            for (const card of cards) {
+                if (card.getAttribute('data-surah-number') === searchSurah) {
+                    card.style.display = "";
+                    card.querySelector('details').open = true;
+
+                    let verseFound = false;
+                    card.querySelectorAll('.verse-item').forEach(verse => {
+                        if (verse.getAttribute('data-ayat-number') === searchAyah) {
+                            verse.style.display = "";
+                            verseFound = true;
+                        } else {
+                            verse.style.display = "none";
+                        }
+                    });
+                    if (verseFound) itemFound = true;
+                } else {
+                    card.style.display = "none";
+                }
+            }
+            if (!itemFound) {
+                noResultsMessage.textContent = `Hasil pencarian untuk '${originalSearchTerm}' tidak ditemukan.`;
+                noResultsMessage.style.display = 'block';
+            }
+            return; // Stop execution for this specific case
+        }
+
+        // --- Use Cases 1 & 2: Text and Surah Number Search ---
+        const isNumericOnly = /^\d+$/.test(originalSearchTerm);
+        const searchTerm = originalSearchTerm.toLowerCase().replace(/[-\s]/g, "");
+
+        // Validate text search length (numeric search bypasses this)
+        if (!isNumericOnly && searchTerm.length > 0 && searchTerm.length < 3) {
             searchTimeout = setTimeout(() => {
                 searchError.textContent = 'Pencarian membutuhkan minimal 3 karakter.';
                 searchError.classList.add('visible');
             }, 5000);
-            
-            // Hide all cards for invalid input
-            for (let card of cards) {
-                card.style.display = "none";
-            }
+            for (const card of cards) card.style.display = "none"; // Hide results for invalid input
             return;
         }
 
         let visibleCardsCount = 0;
-        for (let i = 0; i < cards.length; i++) {
-            const card = cards[i];
-            const summary = card.querySelector('summary');
-            let cardText = '';
-
-            if (summary) {
-                cardText = summary.textContent || summary.innerText;
+        for (const card of cards) {
+            const surahNumber = card.getAttribute('data-surah-number');
+            const surahName = card.querySelector('h3').textContent;
+            
+            // Create a comprehensive string to search against, ignoring hyphens and spaces
+            const fullText = `${surahNumber} ${surahName}`;
+            const simplifiedText = fullText.toLowerCase().replace(/[-\s]/g, '');
+            
+            let isMatch = false;
+            if (isNumericOnly) {
+                isMatch = (surahNumber === originalSearchTerm);
             } else {
-                cardText = card.textContent || card.innerText;
+                isMatch = simplifiedText.includes(searchTerm);
             }
 
-            if (searchTerm.length === 0 || cardText.toLowerCase().indexOf(searchTerm) > -1) {
+            if (isMatch) {
                 card.style.display = "";
                 visibleCardsCount++;
             } else {
@@ -51,9 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // If no cards are visible after a valid search, show the 'not found' message
-        if (visibleCardsCount === 0 && searchTerm.length >= 3) {
-            // Display the user's original, un-sanitized input
+        if (visibleCardsCount === 0 && originalSearchTerm.length > 0) {
             noResultsMessage.textContent = `Hasil pencarian untuk '${originalSearchTerm}' tidak ditemukan.`;
             noResultsMessage.style.display = 'block';
         }

@@ -85,8 +85,14 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .quran-card .verse-item:first-child { padding-top: 0; }
 .quran-card .verse-item:last-child { border-bottom: none; padding-bottom: 0; }
 .quran-card .verse-meta { font-size: 0.9rem; font-weight: 600; color: var(--accent-yellow); margin-bottom: 1rem; }
+.arabic-surah-name {
+    font-family: var(--font-arabic);
+    font-size: 1.6rem;
+    color: var(--text-primary);
+    padding-left: 1rem;
+}
 
-/* --- SEARCH ERROR NOTIFICATION STYLES --- */
+/* --- SEARCH NOTIFICATION STYLES --- */
 .search-error-message {
     color: var(--accent-yellow);
     font-size: 0.85rem;
@@ -107,6 +113,7 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     font-size: 1.1rem;
 }
 
+/* --- OTHER STYLES --- */
 .message-wrapper { margin-bottom: 2rem; max-width: 100%; }
 .sources-quote { border-left: 3px solid var(--accent-yellow); padding-left: 1rem; margin: 1.5rem 0; font-style: italic; color: var(--text-secondary); }
 .sources-quote p { margin-bottom: 0.5rem; }
