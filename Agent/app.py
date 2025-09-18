@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 from dotenv import load_dotenv
 import json
+import re
 
 load_dotenv()
 
@@ -13,7 +14,7 @@ from personality import handle_small_talk
 app = Flask(__name__)
 crew = None
 quran_data_cache = None
-hadith_data_cache = None
+hadith_data_cache = None # This will now store a Pandas DataFrame
 
 def initialize_crew():
     """Initializes the crewAI crew if it hasn't been already."""
@@ -26,6 +27,14 @@ def initialize_crew():
             print("--- Crew Initialized Successfully ---")
         else:
             print("--- Crew Initialization Failed: Retrievers not available. Run /ingest first. ---")
+
+def get_hadith_df():
+    """Helper function to load hadith data into cache if not already present."""
+    global hadith_data_cache
+    if hadith_data_cache is None:
+        print("Loading Hadith data for dictionary...")
+        hadith_data_cache = data_pipeline.load_hadith_for_dictionary()
+    return hadith_data_cache
 
 @app.route('/')
 def chat_page():
@@ -43,12 +52,29 @@ def quran_page():
 
 @app.route('/hadith')
 def hadith_page():
-    """Renders the Hadith dictionary page."""
-    global hadith_data_cache
-    if hadith_data_cache is None:
-        print("Loading Hadith data for dictionary...")
-        hadith_data_cache = data_pipeline.load_hadith_for_dictionary()
-    return render_template('hadith.html', hadith_data=hadith_data_cache)
+    """Renders the Hadith sources list."""
+    hadith_df = get_hadith_df()
+    sources = data_pipeline.get_hadith_sources(hadith_df)
+    return render_template('hadith.html', sources=sources)
+
+@app.route('/hadith/<source_slug>')
+def hadith_chapters_page(source_slug):
+    """Renders the list of chapters for a given Hadith source."""
+    hadith_df = get_hadith_df()
+    chapters, source_name = data_pipeline.get_chapters_for_source(hadith_df, source_slug)
+    if not chapters and source_name == "Unknown":
+        abort(404)
+    return render_template('hadith_chapters.html', chapters=chapters, source_name=source_name, source_slug=source_slug)
+
+@app.route('/hadith/<source_slug>/<chapter_slug>')
+def hadith_list_page(source_slug, chapter_slug):
+    """Renders the list of hadiths for a given source and chapter."""
+    hadith_df = get_hadith_df()
+    hadiths, source_name, chapter_name = data_pipeline.get_hadiths_for_chapter(hadith_df, source_slug, chapter_slug)
+    if not hadiths and source_name == "Unknown":
+        abort(404)
+    return render_template('hadith_list.html', hadith_data=hadiths, source_name=source_name, chapter_name=chapter_name, source_slug=source_slug)
+
 
 @app.route('/ask', methods=['POST'])
 def ask_question():

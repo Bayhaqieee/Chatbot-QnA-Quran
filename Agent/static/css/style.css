@@ -65,7 +65,7 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .dictionary-content { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
 .search-bar { padding: 1.5rem 1.5rem 0; position: relative; width: 100%; max-width: 700px; margin: 0 auto; flex-shrink: 0; margin-bottom: 1rem; }
 .search-bar input { width: 100%; padding: .75rem .75rem .75rem 2.5rem; border-radius: 24px; border: 1px solid var(--border-color); background-color: var(--surface-dark); color: var(--text-primary); font-size: 1rem; }
-.search-bar i { position: absolute; left: 2.5rem; top: 38%; transform: translateY(25%); color: var(--text-secondary); }
+.search-bar i { position: absolute; left: 2.5rem; top: 50%; transform: translateY(25%); color: var(--text-secondary); }
 
 /* --- DICTIONARY CARD FIXES --- */
 .dictionary-card { background-color: var(--surface-dark); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; padding: 0; }
@@ -133,3 +133,55 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 textarea { flex-grow: 1; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 1rem; resize: none; max-height: 150px; overflow-y: auto; padding: .75rem; }
 textarea:focus { outline: none; }
 button#askButton { background-color: var(--accent-green); color: var(--bg-dark); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; display: flex; justify-content: center; align-items: center; transition: background-color .2s; }
+
+
+/* --- NEW HADITH LIST STYLES --- */
+
+.breadcrumbs {
+    padding: 2rem 1.5rem 0rem 1.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0 auto;
+    max-width: 700px;
+    width: 100%;
+}
+.breadcrumbs a {
+    color: var(--accent-green);
+    text-decoration: none;
+}
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+.breadcrumbs span {
+    color: var(--text-primary);
+}
+
+.list-card {
+    display: block;
+    background-color: var(--surface-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: background-color 0.2s;
+}
+.list-card:hover {
+    background-color: #2a2b2c;
+}
+.list-card h3 {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+.chapter-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.chapter-card-header .chapter-number {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    flex-shrink: 0;
+}
