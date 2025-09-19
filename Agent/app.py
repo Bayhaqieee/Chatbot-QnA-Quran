@@ -13,8 +13,8 @@ from personality import handle_small_talk
 
 app = Flask(__name__)
 crew = None
-quran_data_cache = None
-hadith_data_cache = None # This will now store a Pandas DataFrame
+# quran_data_cache is no longer needed, data is fetched on demand
+hadith_data_cache = None # This will still store a Pandas DataFrame
 
 def initialize_crew():
     """Initializes the crewAI crew if it hasn't been already."""
@@ -43,12 +43,19 @@ def chat_page():
 
 @app.route('/quran')
 def quran_page():
-    """Renders the Quran dictionary page."""
-    global quran_data_cache
-    if quran_data_cache is None:
-        print("Loading Quran data for dictionary...")
-        quran_data_cache = data_pipeline.load_quran_for_dictionary()
-    return render_template('quran.html', quran_data=quran_data_cache)
+    """Renders the Quran surah list page."""
+    print("Loading Quran surah list...")
+    quran_data = data_pipeline.get_quran_surah_list()
+    return render_template('quran.html', quran_data=quran_data)
+
+@app.route('/quran/<int:surah_id>')
+def quran_detail_page(surah_id):
+    """Renders the detail page for a single surah."""
+    print(f"Loading detail for Surah {surah_id}...")
+    surah_data = data_pipeline.get_quran_surah_detail(surah_id)
+    if surah_data is None:
+        abort(404)
+    return render_template('quran_detail.html', surah=surah_data)
 
 @app.route('/hadith')
 def hadith_page():

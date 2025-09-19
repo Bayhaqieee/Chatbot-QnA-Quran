@@ -4,7 +4,30 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import kaggle
 import pandas as pd
 import re
+import requests
+import socket
 
+# --- Internet Connectivity Check ---
+IS_ONLINE = None
+
+def check_connectivity():
+    """Checks for a stable internet connection and caches the result."""
+    global IS_ONLINE
+    if IS_ONLINE is not None:
+        return IS_ONLINE
+    
+    try:
+        # Try to connect to the API host and a reliable DNS
+        socket.create_connection(("equran.id", 443), timeout=3)
+        socket.create_connection(("8.8.8.8", 53), timeout=3)
+        print("--- Internet connection detected. Using ONLINE API. ---")
+        IS_ONLINE = True
+    except (socket.timeout, OSError):
+        print("--- No internet connection. Using OFFLINE local files. ---")
+        IS_ONLINE = False
+    return IS_ONLINE
+
+# --- Slugify Helper ---
 def slugify(s):
     """Simple function to create a URL-friendly slug from a string."""
     s = s.lower().strip()
@@ -13,6 +36,7 @@ def slugify(s):
     s = re.sub(r'^-+|-+$', '', s)
     return s
 
+# --- Dataset Download ---
 def check_kaggle_api():
     kaggle_dir = os.path.expanduser('~/.kaggle')
     api_key_path = os.path.join(kaggle_dir, 'kaggle.json')
@@ -32,12 +56,12 @@ def download_and_extract_datasets():
     if not os.path.exists(quran_path) or not os.path.exists(quran_meta_path):
         print("Downloading Quran dataset...")
         kaggle.api.dataset_download_files('alizahidraja/quran-nlp', path=datasets_dir, unzip=True)
-        # Handle potential nested 'data' directory from Kaggle download
         if os.path.exists(os.path.join(datasets_dir, 'data', 'main_df.csv')):
             os.rename(os.path.join(datasets_dir, 'data', 'main_df.csv'), quran_path)
         if os.path.exists(os.path.join(datasets_dir, 'data', 'quran', 'quran.csv')):
             os.rename(os.path.join(datasets_dir, 'data', 'quran', 'quran.csv'), quran_meta_path)
 
+# --- AI Ingestion ---
 def load_and_chunk_data():
     print("--- Loading and Processing Data for AI ---")
     check_kaggle_api()
@@ -49,42 +73,102 @@ def load_and_chunk_data():
     hadith_chunks = text_splitter.split_documents(hadith_loader.load())
     return quran_chunks, hadith_chunks
 
-def load_quran_for_dictionary():
-    """Loads and groups the Quran dataset by Surah for the dictionary view."""
+# --- NEW QURAN DATA LOGIC (Online/Offline) ---
+
+def get_quran_surah_list():
+    """Fetches the list of all Surahs, from API or local files."""
+    if check_connectivity():
+        try:
+            response = requests.get("https://equran.id/api/v2/surat", timeout=5)
+            response.raise_for_status()
+            return response.json().get('data', [])
+        except requests.RequestException as e:
+            print(f"API Error (surah list): {e}. Falling back to offline data.")
+            return get_quran_surah_list_offline()
+    else:
+        return get_quran_surah_list_offline()
+
+def get_quran_surah_detail(surah_id):
+    """Fetches the detail of a specific Surah, from API or local files."""
+    if check_connectivity():
+        try:
+            response = requests.get(f"https://equran.id/api/v2/surat/{surah_id}", timeout=5)
+            response.raise_for_status()
+            return response.json().get('data', None)
+        except requests.RequestException as e:
+            print(f"API Error (surah {surah_id}): {e}. Falling back to offline data.")
+            return get_quran_surah_detail_offline(surah_id)
+    else:
+        return get_quran_surah_detail_offline(surah_id)
+
+def get_quran_surah_list_offline():
+    """Builds a Surah list from local CSV files."""
     try:
-        df = pd.read_csv('datasets/main_df.csv')
-        # Load the supplementary Quran metadata for Arabic names
-        quran_meta_df = pd.read_csv('datasets/data/quran/quran.csv')
-        
-        # Prepare the main data
-        df_renamed = df[['EnglishTitle', 'Surah', 'Ayat', 'Arabic', 'Translation - Arthur J']].rename(columns={
-            'EnglishTitle': 'surah_name', 'Surah': 'surah_number', 'Ayat': 'ayat_number', 'Arabic': 'arabic_text', 'Translation - Arthur J': 'translation'
-        })
+        df_main = pd.read_csv('datasets/main_df.csv')
+        df_meta = pd.read_csv('datasets/quran.csv')
 
-        quran_meta_unique = quran_meta_df[['surah_no', 'surah_name']].drop_duplicates()
-        quran_meta_renamed = quran_meta_unique.rename(columns={
-            'surah_no': 'surah_number', 'surah_name': 'arabic_surah_name'
-        })
+        surah_names = df_main[['Surah', 'EnglishTitle']].drop_duplicates().set_index('Surah')
+        surah_meta = df_meta[['surah_no', 'surah_name', 'total_ayah_surah']].drop_duplicates().set_index('surah_no')
         
-        # Merge the two dataframes
-        df_merged = pd.merge(df_renamed, quran_meta_renamed, on='surah_number', how='left')
-
-        # Group verses by Surah
-        grouped = df_merged.groupby(['surah_number', 'surah_name', 'arabic_surah_name'])
-        surahs_list = []
-        for (surah_number, surah_name, arabic_surah_name), group in grouped:
-            surah_info = {
-                'surah_number': surah_number,
-                'surah_name': surah_name,
-                'arabic_surah_name': arabic_surah_name,
-                'verses': group.to_dict('records')
-            }
-            surahs_list.append(surah_info)
-            
-        return surahs_list
+        merged = surah_names.join(surah_meta)
+        
+        surah_list = []
+        for surah_num, row in merged.iterrows():
+            surah_list.append({
+                "nomor": surah_num,
+                "nama": row['surah_name'],
+                "namaLatin": row['EnglishTitle'],
+                "jumlahAyat": row['total_ayah_surah']
+            })
+        return surah_list
     except FileNotFoundError as e:
-        print(f"Error loading Quran data: {e}. Please ensure main_df.csv and quran.csv are in the 'datasets' folder.")
+        print(f"Offline Error (surah list): {e}")
         return []
+
+def get_quran_surah_detail_offline(surah_id):
+    """Builds a Surah detail object from local CSV files."""
+    try:
+        df_main = pd.read_csv('datasets/main_df.csv')
+        df_meta = pd.read_csv('datasets/quran.csv')
+
+        surah_main = df_main[df_main['Surah'] == surah_id]
+        surah_meta = df_meta[df_meta['surah_no'] == surah_id]
+        
+        if surah_main.empty or surah_meta.empty:
+            return None
+
+        # Get base info
+        info = surah_main.iloc[0]
+        meta_info = surah_meta.iloc[0]
+        
+        surah_data = {
+            "nomor": surah_id,
+            "nama": meta_info['surah_name'],
+            "namaLatin": info['EnglishTitle'],
+            "jumlahAyat": meta_info['total_ayah_surah'],
+            "tempatTurun": None, # Not in our offline data
+            "arti": None, # Not in our offline data
+            "deskripsi": "Deskripsi tidak tersedia dalam mode offline.",
+            "audioFull": {}, # Not in our offline data
+            "ayat": []
+        }
+        
+        # Build ayat list
+        for _, row in surah_main.iterrows():
+            surah_data['ayat'].append({
+                "nomorAyat": row['Ayat'],
+                "teksArab": row['Arabic'],
+                "teksLatin": "Teks latin tidak tersedia dalam mode offline.",
+                "teksIndonesia": row['Translation - Arthur J'],
+                "audio": {}
+            })
+        
+        return surah_data
+    except FileNotFoundError as e:
+        print(f"Offline Error (surah detail): {e}")
+        return None
+
+# --- HADITH DATA LOGIC ---
 
 def load_hadith_for_dictionary():
     """Loads and prepares the Hadith dataset as a DataFrame for efficient querying."""
@@ -94,13 +178,12 @@ def load_hadith_for_dictionary():
             'chapter_no': 'chapter_number', 'hadith_no': 'hadith_number', 'text_ar': 'arabic_text', 'text_en': 'english_text'
         }).fillna('Not Available')
         
-        # Create slugs for URL routing
         hadith_data['source_slug'] = hadith_data['source'].apply(slugify)
         hadith_data['chapter_slug'] = hadith_data['chapter'].apply(slugify)
         
         return hadith_data
     except FileNotFoundError:
-        return pd.DataFrame() # Return an empty DataFrame on error
+        return pd.DataFrame() 
 
 def get_hadith_sources(df):
     """Returns a list of unique hadith sources with their slugs."""

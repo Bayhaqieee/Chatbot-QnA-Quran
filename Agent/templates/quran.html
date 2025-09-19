@@ -4,33 +4,23 @@
 <div class="dictionary-container">
     <div class="search-bar">
         <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Search by Surah name or number (e.g., 18:1)...">
+        <input type="text" id="searchInput" placeholder="Search by Surah name or number...">
         <div id="searchError" class="search-error-message"></div>
     </div>
     <div class="dictionary-content" id="dictionary-content">
         <div id="noResultsMessage" class="no-results-message"></div>
         {% for surah in quran_data %}
-        <div class="dictionary-card quran-card" data-surah-number="{{ surah.surah_number }}">
-            <details>
-                <summary class="card-header">
-                    <h3>{{ surah.surah_name }}</h3>
-                    <span class="arabic-surah-name">{{ surah.arabic_surah_name }}</span>
-                </summary>
-                <div class="card-body">
-                    {% for verse in surah.verses %}
-                    <div class="verse-item" data-ayat-number="{{ verse.ayat_number }}">
-                        <div class="verse-meta">Ayat {{ verse.ayat_number }}</div>
-                        <p class="arabic-text">{{ verse.arabic_text }}</p>
-                        <p>{{ verse.translation }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </details>
-        </div>
+        <a href="{{ url_for('quran_detail_page', surah_id=surah.nomor) }}" class="list-card quran-list-card">
+            <div class="quran-list-header">
+                <span class="chapter-number">{{ surah.nomor }}</span>
+                <h3>{{ surah.namaLatin }}</h3>
+            </div>
+            <span class="arabic-surah-name">{{ surah.nama }}</span>
+        </a>
         {% endfor %}
     </div>
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/dictionary.js') }}"></script>
+<script src="{{ url_for('static', filename='js/quran_search.js') }}"></script>
 {% endblock %}

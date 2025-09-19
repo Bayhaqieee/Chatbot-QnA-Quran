@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}BaseeraAI - {{ surah.namaLatin }}{% endblock %}
+{% block content %}
+<div class="dictionary-container">
+    <div class="breadcrumbs">
+        <a href="{{ url_for('quran_page') }}">Quran</a> &gt;
+        <span>{{ surah.namaLatin }}</span>
+    </div>
+    <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search ayat number or translation...">
+        <div id="searchError" class="search-error-message"></div>
+    </div>
+    
+    <div class="dictionary-content" id="dictionary-content">
+        <div class="quran-detail-header">
+            <div class="quran-detail-header-main">
+                <h2>{{ surah.namaLatin }}</h2>
+                <span>{{ surah.jumlahAyat }} Ayat &bull; {{ surah.arti }}</span>
+            </div>
+            <h2 class="arabic-surah-name">{{ surah.nama }}</h2>
+        </div>
+        
+        {% if surah.deskripsi %}
+        <div class="dictionary-card quran-card">
+             <div class="card-body description-body">
+                {{ surah.deskripsi|safe }}
+             </div>
+        </div>
+        {% endif %}
+
+        <div id="noResultsMessage" class="no-results-message"></div>
+
+        {% for verse in surah.ayat %}
+        <div class="dictionary-card quran-card verse-card">
+            <div class="card-body">
+                <div class="verse-item" data-ayat-number="{{ verse.nomorAyat }}">
+                    <div class="verse-meta">Ayat {{ verse.nomorAyat }}</div>
+                    <p class="arabic-text">{{ verse.teksArab }}</p>
+                    <p class="latin-text">{{ verse.teksLatin }}</p>
+                    <p>{{ verse.teksIndonesia }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quran_search.js') }}"></script>
+{% endblock %}
