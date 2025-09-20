@@ -107,7 +107,8 @@ def get_quran_surah_list_offline():
         df_main = pd.read_csv('datasets/main_df.csv')
         df_meta = pd.read_csv('datasets/quran.csv')
 
-        surah_names = df_main[['Surah', 'EnglishTitle']].drop_duplicates().set_index('Surah')
+        # Add PlaceOfRevelation to the offline data pull
+        surah_names = df_main[['Surah', 'EnglishTitle', 'PlaceOfRevelation']].drop_duplicates().set_index('Surah')
         surah_meta = df_meta[['surah_no', 'surah_name', 'total_ayah_surah']].drop_duplicates().set_index('surah_no')
         
         merged = surah_names.join(surah_meta)
@@ -118,7 +119,8 @@ def get_quran_surah_list_offline():
                 "nomor": surah_num,
                 "nama": row['surah_name'],
                 "namaLatin": row['EnglishTitle'],
-                "jumlahAyat": row['total_ayah_surah']
+                "jumlahAyat": row['total_ayah_surah'],
+                "tempatTurun": row['PlaceOfRevelation'] # Map offline column to API key
             })
         return surah_list
     except FileNotFoundError as e:
@@ -146,7 +148,7 @@ def get_quran_surah_detail_offline(surah_id):
             "nama": meta_info['surah_name'],
             "namaLatin": info['EnglishTitle'],
             "jumlahAyat": meta_info['total_ayah_surah'],
-            "tempatTurun": None, # Not in our offline data
+            "tempatTurun": info['PlaceOfRevelation'], # Map offline column to API key
             "arti": None, # Not in our offline data
             "deskripsi": "Deskripsi tidak tersedia dalam mode offline.",
             "audioFull": {}, # Not in our offline data

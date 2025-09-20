@@ -16,7 +16,10 @@
         <div class="quran-detail-header">
             <div class="quran-detail-header-main">
                 <h2>{{ surah.namaLatin }}</h2>
-                <span>{{ surah.jumlahAyat }} Ayat &bull; {{ surah.arti }}</span>
+                <span>
+                    {{ surah.tempatTurun }} &bull; {{ surah.jumlahAyat }} Ayat
+                    {% if surah.arti %}&bull; {{ surah.arti }}{% endif %}
+                </span>
             </div>
             <h2 class="arabic-surah-name">{{ surah.nama }}</h2>
         </div>

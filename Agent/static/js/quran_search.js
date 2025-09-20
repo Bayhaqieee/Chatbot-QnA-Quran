@@ -29,7 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 cardText = `${ayatNum} ${translation} ${latin}`;
             } else {
                 // On list page, search surah name, latin name, and number
-                cardText = card.textContent || card.innerText;
+                const surahNum = card.getAttribute('data-surah-number');
+                const surahName = card.querySelector('h3').textContent;
+                const arabicName = card.querySelector('.arabic-surah-name').textContent;
+                cardText = `${surahNum} ${surahName} ${arabicName}`;
             }
 
             if (cardText.toLowerCase().indexOf(searchTerm) > -1) {

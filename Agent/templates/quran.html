@@ -10,10 +10,13 @@
     <div class="dictionary-content" id="dictionary-content">
         <div id="noResultsMessage" class="no-results-message"></div>
         {% for surah in quran_data %}
-        <a href="{{ url_for('quran_detail_page', surah_id=surah.nomor) }}" class="list-card quran-list-card">
+        <a href="{{ url_for('quran_detail_page', surah_id=surah.nomor) }}" class="list-card quran-list-card" data-surah-number="{{ surah.nomor }}">
             <div class="quran-list-header">
                 <span class="chapter-number">{{ surah.nomor }}</span>
-                <h3>{{ surah.namaLatin }}</h3>
+                <div class="surah-info">
+                    <h3>{{ surah.namaLatin }}</h3>
+                    <span class="revelation-place">{{ surah.tempatTurun }}</span>
+                </div>
             </div>
             <span class="arabic-surah-name">{{ surah.nama }}</span>
         </a>
