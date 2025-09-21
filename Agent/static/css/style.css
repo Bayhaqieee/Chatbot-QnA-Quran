@@ -262,3 +262,176 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     font-style: italic;
     color: var(--text-primary);
 }
+
+/* --- QURAN DETAIL PAGE STYLING --- */
+
+.quran-detail-content {
+    padding-top: 0; 
+}
+
+/* Header Card */
+.quran-detail-header-card {
+    background: linear-gradient(to bottom right, var(--accent-green), #2a7c46); 
+    border-radius: 12px;
+    padding: 2rem;
+    color: white;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    position: relative; 
+}
+.quran-detail-header-card h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.quran-detail-header-card h2 {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.5rem;
+}
+.quran-detail-header-card .header-meta {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1rem;
+    display: block; 
+}
+.quran-detail-header-card .arabic-surah-name-header {
+    font-family: var(--font-arabic);
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Description Dropdown */
+.surah-description-details {
+    background-color: rgba(0, 0, 0, 0.1); 
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+.surah-description-details summary {
+    list-style: none; 
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+.surah-description-details summary::-webkit-details-marker {
+    display: none; 
+}
+.surah-description-details summary i {
+    font-size: 0.9rem;
+    transition: transform 0.2s ease-in-out;
+}
+.surah-description-details[open] summary i {
+    transform: rotate(180deg);
+}
+.surah-description-details .description-body {
+    padding: 1rem;
+    padding-top: 0.5rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: left;
+    line-height: 1.6;
+}
+.surah-description-details .description-body i {
+    color: white; 
+}
+
+.separator {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 1.5rem auto;
+    width: 90%; 
+    max-width: 650px;
+}
+.verse-separator {
+    margin: 0 auto; 
+}
+
+
+.verse-card {
+    background-color: transparent; 
+    border: none; 
+    margin-bottom: 0; 
+    padding: 0; 
+}
+.verse-body {
+    border-top: none; 
+    padding: 1.5rem 0; 
+}
+
+.verse-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(var(--surface-dark-rgb, 30 31 32), 0.8); 
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+.verse-number {
+    font-weight: 600;
+    color: var(--text-primary);
+    background-color: var(--accent-green);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9rem;
+}
+.verse-actions i {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-left: 1rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.verse-actions i:hover {
+    color: var(--text-primary);
+}
+
+.verse-item {
+    padding: 0; 
+    border-bottom: none; 
+}
+.verse-item .verse-meta {
+    display: none; 
+}
+.verse-item .arabic-text {
+    font-size: 2.2rem;
+    line-height: 3.5rem;
+    margin-bottom: 1.5rem;
+}
+.verse-item .latin-text {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+.verse-item .translation-text { 
+    line-height: 1.7;
+    font-size: 1rem;
+    color: var(--text-primary); 
+}
+
+.dictionary-content.quran-detail-content {
+     max-width: 900px; 
+     margin: 0 auto;
+}
+
+:root {
+    --bg-dark: #131314;
+    --surface-dark: #1e1f20;
+    --surface-dark-rgb: 30, 31, 32; 
+    --text-primary: #e3e3e3;
+    --text-secondary: #9aa0a6;
+    --border-color: #3c4043;
+    --accent-green: #34a853;
+    --accent-yellow: #fbbc05;
+    --font-arabic: 'Lateef', serif;
+    --sidebar-width-collapsed: 80px;
+    --sidebar-width-expanded: 240px;
+}

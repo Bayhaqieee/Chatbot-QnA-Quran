@@ -12,39 +12,52 @@
         <div id="searchError" class="search-error-message"></div>
     </div>
     
-    <div class="dictionary-content" id="dictionary-content">
-        <div class="quran-detail-header">
-            <div class="quran-detail-header-main">
-                <h2>{{ surah.namaLatin }}</h2>
-                <span>
-                    {{ surah.tempatTurun }} &bull; {{ surah.jumlahAyat }} Ayat
-                    {% if surah.arti %}&bull; {{ surah.arti }}{% endif %}
-                </span>
-            </div>
-            <h2 class="arabic-surah-name">{{ surah.nama }}</h2>
+    <div class="dictionary-content quran-detail-content" id="dictionary-content">
+        <div class="quran-detail-header-card">
+            <h1>{{ surah.namaLatin }}</h1>
+            {% if surah.arti %}<h2>{{ surah.arti }}</h2>{% endif %}
+            <span class="header-meta">{{ surah.tempatTurun }} &bull; {{ surah.jumlahAyat }} Ayat</span>
+            <h1 class="arabic-surah-name-header">{{ surah.nama }}</h1>
+
+            {% if surah.deskripsi %}
+            <details class="surah-description-details">
+                <summary>
+                    <span>Tentang Surat</span>
+                    <i class="fas fa-chevron-down"></i>
+                </summary>
+                <div class="description-body">
+                    {{ surah.deskripsi|safe }}
+                </div>
+            </details>
+            {% endif %}
         </div>
         
-        {% if surah.deskripsi %}
-        <div class="dictionary-card quran-card">
-             <div class="card-body description-body">
-                {{ surah.deskripsi|safe }}
-             </div>
-        </div>
-        {% endif %}
+        <div class="separator"></div>
 
         <div id="noResultsMessage" class="no-results-message"></div>
 
         {% for verse in surah.ayat %}
         <div class="dictionary-card quran-card verse-card">
-            <div class="card-body">
+            <div class="card-body verse-body">
+                <div class="verse-header">
+                    <span class="verse-number">{{ verse.nomorAyat }}</span>
+                    <div class="verse-actions">
+                        <i class="fas fa-play-circle"></i> 
+                        <i class="fas fa-bookmark"></i>
+                        <i class="fas fa-copy"></i>
+                        <i class="fas fa-share-alt"></i>
+                    </div>
+                </div>
                 <div class="verse-item" data-ayat-number="{{ verse.nomorAyat }}">
-                    <div class="verse-meta">Ayat {{ verse.nomorAyat }}</div>
                     <p class="arabic-text">{{ verse.teksArab }}</p>
                     <p class="latin-text">{{ verse.teksLatin }}</p>
-                    <p>{{ verse.teksIndonesia }}</p>
+                    <p class="translation-text">{{ verse.teksIndonesia }}</p>
                 </div>
             </div>
         </div>
+         {% if not loop.last %}
+            <div class="separator verse-separator"></div>
+         {% endif %}
         {% endfor %}
     </div>
 </div>
