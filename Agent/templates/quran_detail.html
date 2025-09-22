@@ -11,7 +11,7 @@
         <input type="text" id="searchInput" placeholder="Search ayat number or translation...">
         <div id="searchError" class="search-error-message"></div>
     </div>
-    
+
     <div class="dictionary-content quran-detail-content" id="dictionary-content">
         <div class="quran-detail-header-card">
             <h1>{{ surah.namaLatin }}</h1>
@@ -31,10 +31,12 @@
             </details>
             {% endif %}
         </div>
-        
+
         <div class="separator"></div>
 
         <div id="noResultsMessage" class="no-results-message"></div>
+
+        <audio id="audioPlayer"></audio>
 
         {% for verse in surah.ayat %}
         <div class="dictionary-card quran-card verse-card">
@@ -42,10 +44,12 @@
                 <div class="verse-header">
                     <span class="verse-number">{{ verse.nomorAyat }}</span>
                     <div class="verse-actions">
-                        <i class="fas fa-play-circle"></i> 
-                        <i class="fas fa-bookmark"></i>
-                        <i class="fas fa-copy"></i>
-                        <i class="fas fa-share-alt"></i>
+                        {% if verse.audio and verse.audio['05'] %}
+                        <i class="fas fa-play-circle play-button" data-audio-src="{{ verse.audio['05'] }}"></i>
+                        {% else %}
+                        <i class="fas fa-play-circle" style="opacity: 0.3; cursor: default;"></i> {# Disabled look #}
+                        {% endif %}
+                        <i class="fas fa-copy copy-button"></i>
                     </div>
                 </div>
                 <div class="verse-item" data-ayat-number="{{ verse.nomorAyat }}">
