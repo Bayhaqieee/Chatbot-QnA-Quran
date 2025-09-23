@@ -13,8 +13,19 @@ from personality import handle_small_talk
 
 app = Flask(__name__)
 crew = None
-# quran_data_cache is no longer needed, data is fetched on demand
 hadith_data_cache = None # This will still store a Pandas DataFrame
+
+# --- Qari List for Murajaah ---
+# Keys match the API audio keys ('01', '02', etc.)
+QARI_LIST = {
+    "01": "Abdullah Al-Juhany",
+    "02": "Abdul Muhsin Al-Qasim",
+    "03": "Abdurrahman As-Sudais",
+    "04": "Ibrahim Al-Dossari",
+    "05": "Misyari Rasyid Al-Afasy"
+}
+# Set a default Qari
+DEFAULT_QARI = "05" # Misyari Rasyid Al-Afasy
 
 def initialize_crew():
     """Initializes the crewAI crew if it hasn't been already."""
@@ -81,6 +92,62 @@ def hadith_list_page(source_slug, chapter_slug):
     if not hadiths and source_name == "Unknown":
         abort(404)
     return render_template('hadith_list.html', hadith_data=hadiths, source_name=source_name, chapter_name=chapter_name, source_slug=source_slug)
+
+# --- NEW MURAJAAH ROUTES ---
+
+@app.route('/murajaah')
+def murajaah_page():
+    """Renders the Murajaah selection page (Qari and Surah)."""
+    if not data_pipeline.check_connectivity():
+        # Render the page with an offline warning
+        return render_template('murajaah.html', is_offline=True)
+    
+    # Fetch surah list for selection
+    surah_list = data_pipeline.get_quran_surah_list()
+    return render_template('murajaah.html', 
+                           is_offline=False, 
+                           qari_list=QARI_LIST, 
+                           default_qari=DEFAULT_QARI, 
+                           surah_list=surah_list)
+
+@app.route('/murajaah/surat/<int:surah_id>')
+def murajaah_detail_page(surah_id):
+    """Renders the full-text reading page for Murajaah."""
+    if not data_pipeline.check_connectivity():
+        # Redirect back to selection page if offline
+        return render_template('murajaah.html', is_offline=True)
+    
+    # Get selected Qari from query param, or use default
+    qari_key = request.args.get('qari', DEFAULT_QARI)
+    if qari_key not in QARI_LIST:
+        qari_key = DEFAULT_QARI
+
+    # Fetch the full surah data
+    surah_data = data_pipeline.get_quran_surah_detail(surah_id)
+    if surah_data is None:
+        abort(404)
+        
+    qari_name = QARI_LIST.get(qari_key, "Unknown Qari")
+    
+    # Process data for the template
+    # Combine all Arabic text into one string, wrapping each ayat in a span
+    full_arabic_text = ""
+    for ayat in surah_data.get('ayat', []):
+        audio_src = ayat.get('audio', {}).get(qari_key, '')
+        full_arabic_text += (
+            f"<span class='ayat-span' "
+            f"data-ayat-number='{ayat.get('nomorAyat')}' "
+            f"data-audio-src='{audio_src}'>"
+            f"{ayat.get('teksArab')} "
+            f"</span>"
+        )
+
+    return render_template('murajaah_detail.html', 
+                           surah=surah_data, 
+                           qari_name=qari_name,
+                           full_arabic_text=full_arabic_text)
+
+# --- END NEW MURAJAAH ROUTES ---
 
 
 @app.route('/ask', methods=['POST'])

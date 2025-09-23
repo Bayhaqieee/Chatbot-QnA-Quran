@@ -4,38 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}BaseeraAI{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    {% if request.endpoint == 'chat_page' %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
-    {% endif %}
 </head>
 <body>
     <div class="app-container">
-        <nav class="sidebar">
+        <aside class="sidebar">
             <div class="sidebar-header">
                 <a href="{{ url_for('chat_page') }}">
-                    <i class="fas fa-moon"></i>
-                    <span class="sidebar-text"><h2>Baseera</h2></span>
+                    <i class="fas fa-brain"></i>
+                    <h2 class="sidebar-text">BaseeraAI</h2>
                 </a>
             </div>
-            <div class="sidebar-nav">
+            <nav class="sidebar-nav">
                 <ul>
                     <li class="{{ 'active' if request.endpoint == 'chat_page' else '' }}">
-                        <a href="{{ url_for('chat_page') }}"><i class="fas fa-comments"></i><span class="sidebar-text">Chatbot</span></a>
+                        <a href="{{ url_for('chat_page') }}">
+                            <i class="fas fa-comments"></i>
+                            <span class="sidebar-text">Chat</span>
+                        </a>
                     </li>
-                    <li class="{{ 'active' if request.endpoint == 'quran_page' else '' }}">
-                        <a href="{{ url_for('quran_page') }}"><i class="fas fa-quran"></i><span class="sidebar-text">Quran</span></a>
+                    <li class="{{ 'active' if request.endpoint.startswith('quran') else '' }}">
+                        <a href="{{ url_for('quran_page') }}">
+                            <i class="fas fa-book-quran"></i>
+                            <span class="sidebar-text">Al-Qur'an</span>
+                        </a>
                     </li>
-                    <li class="{{ 'active' if request.endpoint == 'hadith_page' else '' }}">
-                        <a href="{{ url_for('hadith_page') }}"><i class="fas fa-book-open"></i><span class="sidebar-text">Hadith</span></a>
+                    <li class="{{ 'active' if request.endpoint.startswith('hadith') else '' }}">
+                        <a href="{{ url_for('hadith_page') }}">
+                            <i class="fas fa-book-open"></i>
+                            <span class="sidebar-text">Hadith</span>
+                        </a>
+                    </li>
+                    <li class="{{ 'active' if request.endpoint.startswith('murajaah') else '' }}">
+                        <a href="{{ url_for('murajaah_page') }}">
+                            <i class="fas fa-headphones"></i>
+                            <span class="sidebar-text">Murajaah</span>
+                        </a>
                     </li>
                 </ul>
-            </div>
-        </nav>
-        <div class="main-content">
+            </nav>
+        </aside>
+        <main class="main-content">
             {% block content %}{% endblock %}
-        </div>
+        </main>
     </div>
     {% block scripts %}{% endblock %}
 </body>

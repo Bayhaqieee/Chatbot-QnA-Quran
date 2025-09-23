@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}BaseeraAI - Murajaah {{ surah.namaLatin }}{% endblock %}
+{% block content %}
+<div class="dictionary-container murajaah-detail-container">
+    <div class="breadcrumbs">
+        <a href="{{ url_for('murajaah_page') }}">Murajaah</a> &gt;
+        <span>{{ surah.namaLatin }}</span>
+    </div>
+
+    <div class="murajaah-header">
+        <h1>{{ surah.namaLatin }}</h1>
+        <span class="qari-name">Qari: {{ qari_name }}</span>
+    </div>
+
+    <audio id="murajaahAudioPlayer"></audio>
+    
+    <div class="dictionary-content murajaah-text-content" id="murajaahTextContent">
+        <div class="murajaah-arabic-text">
+            {{ full_arabic_text|safe }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/murajaah.js') }}"></script>
+{% endblock %}
