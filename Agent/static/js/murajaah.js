@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-    // --- Logic for murajaah.html (Selection Page) ---
     const qariSelect = document.getElementById('qariSelect');
+    const qariImage = document.getElementById('qariImage'); // Get the image element
     const surahListContainer = document.getElementById('surahListContainer');
     const surahSearchInput = document.getElementById('surahSearchInput');
 
@@ -16,6 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const baseUrl = card.href.split('?')[0]; // Get URL without query params
                 card.href = `${baseUrl}?qari=${selectedQari}`;
             });
+        }
+
+        function updateQariImage() {
+            if (!qariImage) return;
+            // Find the selected option
+            const selectedOption = qariSelect.options[qariSelect.selectedIndex];
+            // Get the image path from its data-attribute
+            const newImageSrc = selectedOption.getAttribute('data-image-src');
+            if (newImageSrc) {
+                qariImage.src = newImageSrc;
+            }
         }
 
         // Function to filter surahs based on search
@@ -39,12 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSurahLinks(); // Set default qari param on page load
 
         // Event Listeners
-        qariSelect.addEventListener('change', updateSurahLinks);
+        qariSelect.addEventListener('change', () => {
+            updateSurahLinks();
+            updateQariImage(); // Call the new image update function
+        });
         surahSearchInput.addEventListener('input', filterSurahs);
     }
 
 
-    // --- Logic for murajaah_detail.html (Reading Page) ---
     const audioPlayer = document.getElementById('murajaahAudioPlayer');
     const textContent = document.getElementById('murajaahTextContent');
     let currentPlayingAyat = null;
@@ -61,13 +73,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (currentPlayingAyat === ayatSpan && !audioPlayer.paused) {
-                // --- PAUSE ---
                 audioPlayer.pause();
                 ayatSpan.classList.remove('playing');
                 currentPlayingAyat = null;
             } else {
-                // --- PLAY ---
-                // Stop and reset previous ayat if one was playing
                 if (currentPlayingAyat) {
                     currentPlayingAyat.classList.remove('playing');
                 }

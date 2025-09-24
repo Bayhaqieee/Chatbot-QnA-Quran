@@ -16,10 +16,16 @@
             </div>
             <div class="card-body">
                 <div class="qari-selector">
-                    <img src="{{ url_for('static', filename='images/qari-default.png') }}" alt="Qari" id="qariImage" class="qari-image">
+                    <img src="{{ url_for('static', filename=qari_list[default_qari].image) }}" alt="Qari" id="qariImage" class="qari-image">
+                    
                     <select id="qariSelect" class="qari-dropdown">
-                        {% for key, name in qari_list.items() %}
-                        <option value="{{ key }}" {% if key == default_qari %}selected{% endif %}>{{ name }}</option>
+                        {% for key, qari in qari_list.items() %}
+                        <option 
+                            value="{{ key }}" 
+                            {% if key == default_qari %}selected{% endif %}
+                            data-image-src="{{ url_for('static', filename=qari.image) }}">
+                            {{ qari.name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>

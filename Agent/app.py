@@ -13,16 +13,29 @@ from personality import handle_small_talk
 
 app = Flask(__name__)
 crew = None
-hadith_data_cache = None # This will still store a Pandas DataFrame
+hadith_data_cache = None # This will now store a Pandas DataFrame
 
-# --- Qari List for Murajaah ---
-# Keys match the API audio keys ('01', '02', etc.)
 QARI_LIST = {
-    "01": "Abdullah Al-Juhany",
-    "02": "Abdul Muhsin Al-Qasim",
-    "03": "Abdurrahman As-Sudais",
-    "04": "Ibrahim Al-Dossari",
-    "05": "Misyari Rasyid Al-Afasy"
+    "01": {
+        "name": "Abdullah Al-Juhany",
+        "image": "src/image/abdullah-al-juhany.jpg"
+    },
+    "02": {
+        "name": "Abdul Muhsin Al-Qasim",
+        "image": "src/image/Abdul_Mohsin_Al-Qasim.jpg"
+    },
+    "03": {
+        "name": "Abdurrahman As-Sudais",
+        "image": "src/image/Abdul-Rahman-Al-Sudais.jpg"
+    },
+    "04": {
+        "name": "Ibrahim Al-Dossari",
+        "image": "src/image/ibrahim-al-dosari.png"
+    },
+    "05": {
+        "name": "Misyari Rasyid Al-Afasy",
+        "image": "src/image/misyari-rasyid-al-afasy.jpeg"
+    }
 }
 # Set a default Qari
 DEFAULT_QARI = "05" # Misyari Rasyid Al-Afasy
@@ -93,8 +106,6 @@ def hadith_list_page(source_slug, chapter_slug):
         abort(404)
     return render_template('hadith_list.html', hadith_data=hadiths, source_name=source_name, chapter_name=chapter_name, source_slug=source_slug)
 
-# --- NEW MURAJAAH ROUTES ---
-
 @app.route('/murajaah')
 def murajaah_page():
     """Renders the Murajaah selection page (Qari and Surah)."""
@@ -127,7 +138,8 @@ def murajaah_detail_page(surah_id):
     if surah_data is None:
         abort(404)
         
-    qari_name = QARI_LIST.get(qari_key, "Unknown Qari")
+    # UPDATED: Get Qari name from the nested dictionary
+    qari_name = QARI_LIST.get(qari_key, {}).get("name", "Unknown Qari")
     
     # Process data for the template
     # Combine all Arabic text into one string, wrapping each ayat in a span
@@ -146,8 +158,6 @@ def murajaah_detail_page(surah_id):
                            surah=surah_data, 
                            qari_name=qari_name,
                            full_arabic_text=full_arabic_text)
-
-# --- END NEW MURAJAAH ROUTES ---
 
 
 @app.route('/ask', methods=['POST'])
