@@ -51,14 +51,13 @@ body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color
 
 /* --- CHAT AREA SPECIFIC STYLES --- */
 .chat-area { flex-grow: 1; overflow-y: auto; padding: 1.5rem; max-width: 900px; width: 100%; margin: 0 auto; }
-/* Limit chat input width */
 .input-container { padding: 1rem; width: 100%; max-width: 900px; margin: 0 auto; flex-shrink: 0; background-color: var(--bg-dark); }
 .input-form { display: flex; align-items: flex-end; gap: .75rem; background-color: var(--surface-dark); padding: .5rem; border-radius: 28px; }
 textarea { flex-grow: 1; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 1rem; resize: none; max-height: 150px; overflow-y: auto; padding: .75rem; }
 textarea:focus { outline: none; }
 button#askButton { background-color: var(--accent-green); color: var(--bg-dark); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; display: flex; justify-content: center; align-items: center; transition: background-color .2s; }
 .loader-wrapper { padding: 1rem; color: var(--text-secondary); }
-.message-wrapper { margin-bottom: 0.5rem; max-width: 85%; } /* Max width for message bubbles */
+.message-wrapper { margin-bottom: 0.5rem; max-width: 85%; }
 .user-message-wrapper, .ai-message-wrapper { display: flex; margin-bottom: 2rem; }
 .user-message-wrapper { justify-content: flex-end; }
 .ai-message-wrapper { justify-content: flex-start; }
@@ -70,17 +69,16 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .dictionary-content {
     flex-grow: 1;
     overflow-y: auto;
-    padding: 1.5rem; /* Default padding */
-    width: 100%; /* Ensure it tries to fill */
-    margin: 0 auto; /* Center content horizontally */
+    padding: 1.5rem;
+    width: 100%;
+    margin: 0 auto;
 }
 
-/* Allow dictionary container search/content to be wider, remove max-width */
 .dictionary-container .search-bar,
 .dictionary-container .dictionary-content {
-    max-width: none; /* REMOVED max-width */
-    padding-left: 2rem;  /* Add padding to container elements */
-    padding-right: 2rem; /* Add padding to container elements */
+    max-width: none;
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
 
 /* Search bar general */
@@ -88,13 +86,13 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .search-bar input { width: 100%; padding: .75rem .75rem .75rem 2.5rem; border-radius: 24px; border: 1px solid var(--border-color); background-color: var(--surface-dark); color: var(--text-primary); font-size: 1rem; }
 .search-bar i {
     position: absolute;
-    left: 2.5rem; /* Keep relative to padding */
+    left: 3.5rem; /* Adjusted for new container padding */
     top: 2.85rem;
     transform: translateY(-50%);
     color: var(--text-secondary);
 }
 
-/* --- DICTIONARY CARD STYLES --- */
+/* --- DICTIONARY CARD STYLES (GENERAL) --- */
 .dictionary-card { background-color: var(--surface-dark); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 1rem; padding: 0; }
 .dictionary-card p { color: var(--text-secondary); line-height: 1.6; }
 .arabic-text { font-family: var(--font-arabic); font-size: 1.8rem; color: var(--text-primary); text-align: right; direction: rtl; margin-bottom: 1rem; line-height: 2.5rem; }
@@ -110,7 +108,7 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .hadith-card h4 { font-size: 1rem; font-weight: 500; color: var(--text-secondary); margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hadith-card .card-meta { font-size: 0.9rem; color: var(--text-secondary); text-align: right; flex-shrink: 0; }
 
-/* --- QURAN CARD STYLES --- */
+/* --- QURAN CARD STYLES (GENERAL) --- */
 .quran-card h3 { font-size: 1.2rem; font-weight: 500; flex-grow: 1; }
 .quran-card .verse-item { padding: 1.5rem 0; border-bottom: 1px solid var(--border-color); }
 .quran-card .verse-item:first-child { padding-top: 0; }
@@ -120,7 +118,6 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     font-family: var(--font-arabic);
     font-size: 1.6rem;
     color: var(--text-primary);
-    padding-left: 1rem;
 }
 
 /* --- SEARCH NOTIFICATION STYLES --- */
@@ -137,15 +134,15 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     opacity: 1;
 }
 .no-results-message {
-    display: none; /* Hidden by default */
+    display: none;
     text-align: center;
     color: var(--text-secondary);
     padding: 3rem 1rem;
     font-size: 1.1rem;
 }
 
-/* --- OTHER UI ELEMENTS --- */
-.message-wrapper { margin-bottom: 2rem; max-width: 100%; } /* Allow full width in chat */
+/* --- OTHER UI ELEMENTS (CHAT) --- */
+.message-wrapper { margin-bottom: 2rem; max-width: 100%; }
 .sources-quote { border-left: 3px solid var(--accent-yellow); padding-left: 1rem; margin: 1.5rem 0; font-style: italic; color: var(--text-secondary); }
 .sources-quote p { margin-bottom: 0.5rem; }
 .thinking-dropdown details { border: 1px solid var(--border-color); border-radius: 8px; }
@@ -163,9 +160,8 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 
 
 /* --- HADITH LIST STYLES --- */
-
 .breadcrumbs {
-    padding: 2rem 1.5rem 0rem 1.5rem;
+    padding: 2rem 0 0rem 0;
     color: var(--text-secondary);
     font-size: 0.9rem;
     margin: 0;
@@ -213,28 +209,23 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 }
 
 /* --- QURAN LIST & DETAIL STYLES --- */
-
 .quran-list-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
 .quran-list-header {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
-
 .quran-list-header .chapter-number {
     display: none;
 }
-
 .surah-info {
     display: flex;
     flex-direction: column;
 }
-
 .revelation-place {
     font-size: 0.9rem;
     color: var(--text-secondary);
@@ -246,7 +237,6 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     color: var(--text-secondary) !important;
     margin-bottom: 0.5rem;
 }
-
 .description-body {
     line-height: 1.7;
     color: var(--text-secondary);
@@ -256,14 +246,11 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     color: var(--text-primary);
 }
 
-/* --- QURAN DETAIL PAGE STYLING --- */
-
+/* --- QURAN DETAIL PAGE STYLING (AL-QURAN ONLINE PATTERN) --- */
 .quran-detail-content {
     padding-top: 0;
-    max-width: none; 
+    max-width: none;
 }
-
-/* Header Card */
 .quran-detail-header-card {
     background: linear-gradient(to bottom right, var(--accent-green), #2a7c46);
     border-radius: 12px;
@@ -341,14 +328,13 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .separator {
     height: 1px;
     background-color: var(--border-color);
-    margin: 1.5rem auto; /* Center separator */
-    width: 100%; /* Make separator full width */
-    max-width: none; /* REMOVED max-width */
+    margin: 1.5rem auto;
+    width: 100%;
+    max-width: none;
 }
 .verse-separator {
     margin: 0 auto;
 }
-
 
 /* Verse Card Adjustments */
 .verse-card {
@@ -364,7 +350,6 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     border-top: none;
     padding: 1.5rem 0;
 }
-
 .verse-header {
     display: flex;
     justify-content: space-between;
@@ -399,8 +384,6 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .verse-actions i.copied {
     color: var(--accent-green);
 }
-
-
 .verse-item {
     padding: 0;
     border-bottom: none;
@@ -429,43 +412,30 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 }
 
 /* --- CUSTOM SCROLLBAR --- */
-.dictionary-content::-webkit-scrollbar {
+.dictionary-content::-webkit-scrollbar,
+.surah-list-container::-webkit-scrollbar {
     width: 8px;
 }
-.dictionary-content::-webkit-scrollbar-track {
+.dictionary-content::-webkit-scrollbar-track,
+.surah-list-container::-webkit-scrollbar-track {
     background: var(--surface-dark);
     border-radius: 4px;
 }
-.dictionary-content::-webkit-scrollbar-thumb {
+.dictionary-content::-webkit-scrollbar-thumb,
+.surah-list-container::-webkit-scrollbar-thumb {
     background-color: var(--border-color);
     border-radius: 4px;
     border: 2px solid var(--surface-dark);
 }
-.dictionary-content::-webkit-scrollbar-thumb:hover {
+.dictionary-content::-webkit-scrollbar-thumb:hover,
+.surah-list-container::-webkit-scrollbar-thumb:hover {
     background-color: var(--text-secondary);
 }
 
-/* Firefox scrollbar styles */
-.dictionary-content {
+.dictionary-content,
+.surah-list-container {
     scrollbar-width: thin;
-    scrollbar-color: var(--border-color) var(--surface-dark); 
-}
-
-/* --- OFFLINE WARNING --- */
-.offline-warning {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: var(--text-secondary);
-}
-.offline-warning i {
-    font-size: 3rem;
-    color: var(--accent-yellow);
-    margin-bottom: 1.5rem;
-}
-.offline-warning h3 {
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    scrollbar-color: var(--border-color) var(--surface-dark);
 }
 
 
@@ -496,20 +466,49 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .qari-image {
     width: 80px;
     height: 80px;
-    border-radius: 50%;
+    border-radius: 12px; /* Changed from 50% */
     object-fit: cover;
     border: 2px solid var(--border-color);
+    flex-shrink: 0; /* Prevent image from shrinking */
 }
+
+/* NEW: Wrapper for custom dropdown */
+.qari-dropdown-wrapper {
+    flex-grow: 1; /* Take remaining space */
+    position: relative; /* For arrow positioning */
+}
+.qari-dropdown-wrapper::after {
+    content: '▼';
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none; /* Let clicks pass through to select */
+}
+
 .qari-dropdown {
     flex-grow: 1;
     font-size: 1.1rem;
-    padding: 0.75rem;
+    padding: 0.75rem 2rem 0.75rem 1rem; /* Add padding-right for arrow space */
     background-color: var(--bg-dark);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-family: 'Inter', sans-serif;
+    width: 100%; /* Make select fill wrapper */
+
+    /* Hide default browser arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
+/* Fix for Firefox */
+.qari-dropdown::-ms-expand {
+    display: none;
+}
+
 
 .murajaah-search {
     width: 100%;
@@ -525,33 +524,38 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 .surah-list-container {
     max-height: 400px;
     overflow-y: auto;
-    padding-right: 10px; /* Space for scrollbar */
+    padding-right: 10px;
+}
+
+/* STYLES FOR MURAJAAH SURAH LIST */
+.surah-select-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+.surah-select-card .surah-list-number {
+    flex-shrink: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    width: 30px;
+    text-align: center;
+}
+.surah-select-card .surah-list-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.surah-select-card .surah-list-arabic {
+    flex-shrink: 0;
 }
 .surah-select-card h3 {
     font-size: 1.1rem;
 }
 .surah-select-card .revelation-place {
     font-size: 0.85rem;
-}
-
-/* Scrollbar for Surah list */
-.surah-list-container::-webkit-scrollbar {
-    width: 8px;
-}
-.surah-list-container::-webkit-scrollbar-track {
-    background: var(--bg-dark);
-    border-radius: 4px;
-}
-.surah-list-container::-webkit-scrollbar-thumb {
-    background-color: var(--border-color);
-    border-radius: 4px;
-}
-.surah-list-container::-webkit-scrollbar-thumb:hover {
-    background-color: var(--text-secondary);
-}
-.surah-list-container {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-color) var(--bg-dark);
+    color: var(--text-secondary);
 }
 
 
@@ -581,7 +585,7 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 }
 .murajaah-arabic-text {
     font-family: var(--font-arabic);
-    font-size: 2.5rem; /* Larger font for reading */
+    font-size: 2.5rem;
     line-height: 4.5rem;
     text-align: right;
     direction: rtl;
