@@ -15,6 +15,7 @@ app = Flask(__name__)
 crew = None
 hadith_data_cache = None # This will now store a Pandas DataFrame
 
+# --- Qari List for Murajaah ---
 QARI_LIST = {
     "01": {
         "name": "Abdullah Al-Juhany",
@@ -37,8 +38,13 @@ QARI_LIST = {
         "image": "src/image/misyari-rasyid-al-afasy.jpeg"
     }
 }
-# Set a default Qari
 DEFAULT_QARI = "05" # Misyari Rasyid Al-Afasy
+
+# --- NEW HELPER FUNCTION ---
+def to_eastern_arabic_numerals(number):
+    """Converts a standard integer to Eastern Arabic numerals."""
+    eastern_numerals = '٠١٢٣٤٥٦٧٨٩'
+    return ''.join(eastern_numerals[int(digit)] for digit in str(number))
 
 def initialize_crew():
     """Initializes the crewAI crew if it hasn't been already."""
@@ -106,6 +112,7 @@ def hadith_list_page(source_slug, chapter_slug):
         abort(404)
     return render_template('hadith_list.html', hadith_data=hadiths, source_name=source_name, chapter_name=chapter_name, source_slug=source_slug)
 
+# --- MURAJAAH ROUTES ---
 @app.route('/murajaah')
 def murajaah_page():
     """Renders the Murajaah selection page (Qari and Surah)."""
@@ -138,27 +145,28 @@ def murajaah_detail_page(surah_id):
     if surah_data is None:
         abort(404)
         
-    # UPDATED: Get Qari name from the nested dictionary
     qari_name = QARI_LIST.get(qari_key, {}).get("name", "Unknown Qari")
     
-    # Process data for the template
-    # Combine all Arabic text into one string, wrapping each ayat in a span
     full_arabic_text = ""
     for ayat in surah_data.get('ayat', []):
         audio_src = ayat.get('audio', {}).get(qari_key, '')
+        ayat_number = ayat.get('nomorAyat')
+        # Convert number to Eastern Arabic numerals
+        arabic_number = to_eastern_arabic_numerals(ayat_number)
+        
         full_arabic_text += (
             f"<span class='ayat-span' "
-            f"data-ayat-number='{ayat.get('nomorAyat')}' "
+            f"data-ayat-number='{ayat_number}' "
             f"data-audio-src='{audio_src}'>"
-            f"{ayat.get('teksArab')} "
+            f"{ayat.get('teksArab')}" # Ayat text
             f"</span>"
+            f" <span class='murajaah-separator'>\u06dd{arabic_number}</span> "
         )
 
     return render_template('murajaah_detail.html', 
                            surah=surah_data, 
                            qari_name=qari_name,
                            full_arabic_text=full_arabic_text)
-
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
