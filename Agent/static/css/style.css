@@ -589,7 +589,8 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     font-family: var(--font-arabic);
     font-size: 2.5rem;
     line-height: 4.5rem;
-    text-align: right;
+    text-align: justify; /* <-- CHANGED */
+    text-justify: inter-word; /* Added for better justification */
     direction: rtl;
     color: var(--text-secondary);
 }
@@ -609,7 +610,7 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     font-family: 'Times New Roman', serif; 
     font-size: 1.5rem;
     font-weight: bold;
-    color: var(--accent-grey);
+    color: var(--text-secondary); /* Corrected from --accent-grey */
     cursor: default;
     display: inline-block;
     vertical-align: middle;
