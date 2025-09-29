@@ -8,8 +8,17 @@
     </div>
 
     <div class="murajaah-header">
-        <h1>{{ surah.namaLatin }}</h1>
-        <span class="qari-name">Qari: {{ qari_name }}</span>
+        <div class="header-info">
+            <h1>{{ surah.namaLatin }}</h1>
+            <span class="qari-name">Qari: {{ qari_name }}</span>
+        </div>
+        <div class="autoplay-control">
+            <label class="switch">
+                <input type="checkbox" id="autoplaySwitch">
+                <span class="slider round"></span>
+            </label>
+            <span class="switch-label">Autoplay</span>
+        </div>
     </div>
 
     <audio id="murajaahAudioPlayer"></audio>
@@ -19,6 +28,21 @@
             {{ full_arabic_text|safe }}
         </div>
     </div>
+
+    <div id="nextSurahModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Next Surah</h3>
+            <p>Moving to the next Surah in <span id="countdownTimer">10</span> seconds...</p>
+            <div class="modal-actions">
+                <button id="stayButton" class="modal-btn secondary">Stay</button>
+                <button id="continueButton" class="modal-btn primary">Continue</button>
+            </div>
+        </div>
+    </div>
+    
+    <input type="hidden" id="nextSurahId" value="{{ next_surah_id }}">
+    <input type="hidden" id="currentQari" value="{{ current_qari }}">
+
 </div>
 {% endblock %}
 {% block scripts %}

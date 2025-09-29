@@ -112,7 +112,6 @@ def hadith_list_page(source_slug, chapter_slug):
         abort(404)
     return render_template('hadith_list.html', hadith_data=hadiths, source_name=source_name, chapter_name=chapter_name, source_slug=source_slug)
 
-# --- MURAJAAH ROUTES ---
 @app.route('/murajaah')
 def murajaah_page():
     """Renders the Murajaah selection page (Qari and Surah)."""
@@ -135,18 +134,16 @@ def murajaah_detail_page(surah_id):
         # Redirect back to selection page if offline
         return render_template('murajaah.html', is_offline=True)
     
-    # Get selected Qari from query param, or use default
     qari_key = request.args.get('qari', DEFAULT_QARI)
     if qari_key not in QARI_LIST:
         qari_key = DEFAULT_QARI
 
-    # Fetch the full surah data
     surah_data = data_pipeline.get_quran_surah_detail(surah_id)
     if surah_data is None:
         abort(404)
         
     qari_name = QARI_LIST.get(qari_key, {}).get("name", "Unknown Qari")
-    
+    next_surah_id = surah_id + 1 if surah_id < 114 else 1
     full_arabic_text = ""
     for ayat in surah_data.get('ayat', []):
         audio_src = ayat.get('audio', {}).get(qari_key, '')
@@ -160,13 +157,16 @@ def murajaah_detail_page(surah_id):
             f"data-audio-src='{audio_src}'>"
             f"{ayat.get('teksArab')}" # Ayat text
             f"</span>"
+            # Add the new separator span
             f" <span class='murajaah-separator'>\u06dd{arabic_number}</span> "
         )
 
     return render_template('murajaah_detail.html', 
                            surah=surah_data, 
                            qari_name=qari_name,
-                           full_arabic_text=full_arabic_text)
+                           full_arabic_text=full_arabic_text,
+                           next_surah_id=next_surah_id,
+                           current_qari=qari_key)
 
 @app.route('/ask', methods=['POST'])
 def ask_question():

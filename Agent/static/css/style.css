@@ -567,9 +567,18 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 
 /* --- MURAJAAH DETAIL PAGE --- */
 .murajaah-header {
-    text-align: center;
-    padding: 1rem 0 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1rem;
 }
+
+.header-info {
+    text-align: left;
+}
+
 .murajaah-header h1 {
     font-size: 2rem;
     font-weight: 600;
@@ -581,16 +590,131 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
     color: var(--text-secondary);
 }
 
+/* Autoplay Switch */
+.autoplay-control {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.switch-label {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* The Switch Box */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+}
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--surface-dark);
+    border: 1px solid var(--border-color);
+    transition: .4s;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-secondary);
+    transition: .4s;
+}
+.switch input:checked + .slider {
+    background-color: var(--accent-green);
+    border-color: var(--accent-green);
+}
+.switch input:checked + .slider:before {
+    transform: translateX(18px);
+    background-color: white;
+}
+.slider.round {
+    border-radius: 34px;
+}
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* --- MODAL STYLES --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background-color: var(--surface-dark);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+.modal-content h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+.modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+.modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    border: none;
+    transition: opacity 0.2s;
+}
+.modal-btn:hover {
+    opacity: 0.9;
+}
+.modal-btn.primary {
+    background-color: var(--accent-green);
+    color: white;
+}
+.modal-btn.secondary {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
 .murajaah-text-content {
-    padding-top: 0;
+    padding-top: 1rem;
     padding-bottom: 3rem;
 }
 .murajaah-arabic-text {
     font-family: var(--font-arabic);
-    font-size: 2.5rem;
-    line-height: 4.5rem;
-    text-align: justify; /* <-- CHANGED */
-    text-justify: inter-word; /* Added for better justification */
+    font-size: 3.5rem; /* Increased font size */
+    line-height: 6rem; /* Increased line height */
+    text-align: justify;
+    text-justify: inter-word;
     direction: rtl;
     color: var(--text-secondary);
 }
@@ -608,9 +732,9 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 /* NEW SEPARATOR STYLES */
 .murajaah-separator {
     font-family: 'Times New Roman', serif; 
-    font-size: 1.5rem;
+    font-size: 2.5rem; /* Increased font size */
     font-weight: bold;
-    color: var(--text-secondary); /* Corrected from --accent-grey */
+    color: var(--text-secondary);
     cursor: default;
     display: inline-block;
     vertical-align: middle;
