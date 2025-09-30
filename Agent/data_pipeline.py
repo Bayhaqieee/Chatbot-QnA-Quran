@@ -73,7 +73,7 @@ def load_and_chunk_data():
     hadith_chunks = text_splitter.split_documents(hadith_loader.load())
     return quran_chunks, hadith_chunks
 
-# --- NEW QURAN DATA LOGIC (Online/Offline) ---
+# --- QURAN DATA LOGIC ---
 
 def get_quran_surah_list():
     """Fetches the list of all Surahs, from API or local files."""
@@ -94,7 +94,21 @@ def get_quran_surah_detail(surah_id):
         try:
             response = requests.get(f"https://equran.id/api/v2/surat/{surah_id}", timeout=5)
             response.raise_for_status()
-            return response.json().get('data', None)
+            data = response.json().get('data', None)
+            if data:
+                # API returns 'suratSelanjutnya' and 'suratSebelumnya' which we can map
+                next_surah = data.get('suratSelanjutnya')
+                prev_surah = data.get('suratSebelumnya')
+
+                # Ensure consistent format or None
+                if next_surah is False: next_surah = None
+                if prev_surah is False: prev_surah = None
+                
+                # Standardize naming for template
+                data['next_surah'] = next_surah
+                data['prev_surah'] = prev_surah
+
+            return data
         except requests.RequestException as e:
             print(f"API Error (surah {surah_id}): {e}. Falling back to offline data.")
             return get_quran_surah_detail_offline(surah_id)
@@ -143,6 +157,20 @@ def get_quran_surah_detail_offline(surah_id):
         info = surah_main.iloc[0]
         meta_info = surah_meta.iloc[0]
         
+        # Determine Next/Prev
+        next_surah = None
+        prev_surah = None
+        
+        if surah_id < 114:
+            next_id = surah_id + 1
+            next_info = df_main[df_main['Surah'] == next_id].iloc[0]
+            next_surah = {"nomor": next_id, "namaLatin": next_info['EnglishTitle']}
+            
+        if surah_id > 1:
+            prev_id = surah_id - 1
+            prev_info = df_main[df_main['Surah'] == prev_id].iloc[0]
+            prev_surah = {"nomor": prev_id, "namaLatin": prev_info['EnglishTitle']}
+
         surah_data = {
             "nomor": surah_id,
             "nama": meta_info['surah_name'],
@@ -152,7 +180,9 @@ def get_quran_surah_detail_offline(surah_id):
             "arti": None, # Not in our offline data
             "deskripsi": "Deskripsi tidak tersedia dalam mode offline.",
             "audioFull": {}, # Not in our offline data
-            "ayat": []
+            "ayat": [],
+            "next_surah": next_surah,
+            "prev_surah": prev_surah
         }
         
         # Build ayat list

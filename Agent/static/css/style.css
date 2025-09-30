@@ -711,8 +711,8 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 }
 .murajaah-arabic-text {
     font-family: var(--font-arabic);
-    font-size: 3.5rem; /* Increased font size */
-    line-height: 6rem; /* Increased line height */
+    font-size: 2.5rem; /* Increased font size */
+    line-height: 5rem;
     text-align: justify;
     text-justify: inter-word;
     direction: rtl;
@@ -732,11 +732,83 @@ button#askButton { background-color: var(--accent-green); color: var(--bg-dark);
 /* NEW SEPARATOR STYLES */
 .murajaah-separator {
     font-family: 'Times New Roman', serif; 
-    font-size: 2.5rem; /* Increased font size */
+    font-size: 1.5rem; /* Increased font size */
     font-weight: bold;
     color: var(--text-secondary);
     cursor: default;
     display: inline-block;
     vertical-align: middle;
     line-height: 1;
+}
+
+/* --- NAVIGATION BUTTONS STYLES --- */
+.surah-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.nav-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--surface-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    flex: 1;
+    transition: background-color 0.2s, border-color 0.2s;
+    min-width: 0; /* Prevent flex items from overflowing */
+}
+.nav-card:hover {
+    background-color: #2a2b2c;
+    border-color: var(--text-secondary);
+}
+
+.nav-placeholder {
+    flex: 1; /* Keep layout balanced if one button is missing */
+}
+
+/* Previous Button Specifics */
+.prev-card {
+    justify-content: flex-start;
+    text-align: left;
+}
+.prev-card i {
+    margin-right: 1rem;
+    color: var(--accent-green);
+}
+
+/* Next Button Specifics */
+.next-card {
+    justify-content: flex-end;
+    text-align: right;
+}
+.next-card i {
+    margin-left: 1rem;
+    color: var(--accent-green);
+}
+
+.nav-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.nav-surah {
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

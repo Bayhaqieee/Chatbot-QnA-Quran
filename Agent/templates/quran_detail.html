@@ -11,7 +11,7 @@
         <input type="text" id="searchInput" placeholder="Search ayat number or translation...">
         <div id="searchError" class="search-error-message"></div>
     </div>
-
+    
     <div class="dictionary-content quran-detail-content" id="dictionary-content">
         <div class="quran-detail-header-card">
             <h1>{{ surah.namaLatin }}</h1>
@@ -31,7 +31,7 @@
             </details>
             {% endif %}
         </div>
-
+        
         <div class="separator"></div>
 
         <div id="noResultsMessage" class="no-results-message"></div>
@@ -47,7 +47,7 @@
                         {% if verse.audio and verse.audio['05'] %}
                         <i class="fas fa-play-circle play-button" data-audio-src="{{ verse.audio['05'] }}"></i>
                         {% else %}
-                        <i class="fas fa-play-circle" style="opacity: 0.3; cursor: default;"></i> {# Disabled look #}
+                        <i class="fas fa-play-circle" style="opacity: 0.3; cursor: default;"></i>
                         {% endif %}
                         <i class="fas fa-copy copy-button"></i>
                     </div>
@@ -63,6 +63,35 @@
             <div class="separator verse-separator"></div>
          {% endif %}
         {% endfor %}
+
+        <div class="separator"></div>
+
+        <div class="surah-navigation">
+            {% if surah.prev_surah %}
+            <a href="{{ url_for('quran_detail_page', surah_id=surah.prev_surah.nomor) }}" class="nav-card prev-card">
+                <i class="fas fa-chevron-left"></i>
+                <div class="nav-info">
+                    <span class="nav-label">Previous</span>
+                    <span class="nav-surah">{{ surah.prev_surah.namaLatin }}</span>
+                </div>
+            </a>
+            {% else %}
+            <div class="nav-placeholder"></div>
+            {% endif %}
+
+            {% if surah.next_surah %}
+            <a href="{{ url_for('quran_detail_page', surah_id=surah.next_surah.nomor) }}" class="nav-card next-card">
+                <div class="nav-info">
+                    <span class="nav-label">Next</span>
+                    <span class="nav-surah">{{ surah.next_surah.namaLatin }}</span>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% else %}
+            <div class="nav-placeholder"></div>
+            {% endif %}
+        </div>
+
     </div>
 </div>
 {% endblock %}
