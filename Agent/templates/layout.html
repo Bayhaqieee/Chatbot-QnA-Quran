@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Baseera{% endblock %}</title> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>{% block title %}Baseera{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -11,7 +12,9 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <a href="{{ url_for('chat_page') }}">
-                    <i class="fas fa-moon"></i> <h2 class="sidebar-text">Baseera</h2> </a>
+                    <i class="fas fa-moon"></i>
+                    <h2 class="sidebar-text">Baseera</h2>
+                </a>
             </div>
             <nav class="sidebar-nav">
                 <ul>
@@ -37,6 +40,12 @@
                         <a href="{{ url_for('murajaah_page') }}">
                             <i class="fas fa-headphones"></i>
                             <span class="sidebar-text">Murajaah</span>
+                        </a>
+                    </li>
+                    <li class="{{ 'active' if request.endpoint.startswith('game') else '' }}">
+                        <a href="{{ url_for('game_page') }}">
+                            <i class="fas fa-gamepad"></i>
+                            <span class="sidebar-text">Game</span>
                         </a>
                     </li>
                 </ul>
