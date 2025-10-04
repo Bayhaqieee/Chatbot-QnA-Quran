@@ -150,6 +150,8 @@ def murajaah_detail_page(surah_id):
                            next_surah_id=next_surah_id,
                            current_qari=qari_key)
 
+# --- GAME ROUTES ---
+
 @app.route('/game')
 def game_page():
     """Renders the Game menu page."""
@@ -188,7 +190,7 @@ def generate_game_data():
                 target_surah_info = random.choice(surah_list)
             else:
                 target_surah_info = next((s for s in surah_list if str(s['nomor']) == str(surah_target)), None)
-                if not target_surah_info: continue # Should not happen
+                if not target_surah_info: continue 
             
             target_surah_no = target_surah_info['nomor']
             max_ayat = target_surah_info['jumlahAyat']
@@ -207,9 +209,18 @@ def generate_game_data():
             options = [correct_answer]
             
             while len(options) < 4:
-                wrong_surah = random.choice(surah_list)
-                wrong_ayat = random.randint(1, wrong_surah['jumlahAyat'])
-                wrong_option = f"{wrong_surah['namaLatin']} : {wrong_ayat}"
+                if surah_target == 'all':
+                    # If playing "All Surah", pick random surah and random ayat
+                    wrong_surah = random.choice(surah_list)
+                    wrong_ayat = random.randint(1, wrong_surah['jumlahAyat'])
+                    wrong_option = f"{wrong_surah['namaLatin']} : {wrong_ayat}"
+                else:
+                    # If playing specific Surah, pick same surah but different ayat
+                    wrong_ayat = random.randint(1, max_ayat)
+                    # Ensure we don't pick the target ayat again (though unlikely to match exact correct_answer string)
+                    while wrong_ayat == target_ayat_no:
+                        wrong_ayat = random.randint(1, max_ayat)
+                    wrong_option = f"{target_surah_info['namaLatin']} : {wrong_ayat}"
                 
                 if wrong_option not in options:
                     options.append(wrong_option)
