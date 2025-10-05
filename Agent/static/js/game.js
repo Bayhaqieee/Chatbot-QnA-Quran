@@ -4,8 +4,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameConfigModal = document.getElementById('gameConfigModal');
     const cancelGameBtn = document.getElementById('cancelGameBtn');
     const startGameBtn = document.getElementById('startGameBtn');
+    
+    // Mode Toggles
+    const radioButtons = document.querySelectorAll('input[name="gameMode"]');
+    const surahSelectGroup = document.getElementById('surahSelectGroup');
+    const juzSelectGroup = document.getElementById('juzSelectGroup');
 
     if (ayatGuesserCard && gameConfigModal) {
+        
+        // Show/Hide dropdowns based on mode
+        if (radioButtons) {
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 'surah') {
+                        surahSelectGroup.style.display = 'block';
+                        juzSelectGroup.style.display = 'none';
+                    } else {
+                        surahSelectGroup.style.display = 'none';
+                        juzSelectGroup.style.display = 'block';
+                    }
+                });
+            });
+        }
+
         ayatGuesserCard.addEventListener('click', () => {
             gameConfigModal.style.display = 'flex';
         });
@@ -15,12 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         startGameBtn.addEventListener('click', () => {
-            const surah = document.getElementById('gameSurahSelect').value;
+            const mode = document.querySelector('input[name="gameMode"]:checked').value;
+            let target;
+
+            if (mode === 'surah') {
+                target = document.getElementById('gameSurahSelect').value;
+            } else {
+                target = document.getElementById('gameJuzSelect').value;
+            }
+
             const qari = document.getElementById('gameQariSelect').value;
             const amount = document.getElementById('gameAmountSelect').value;
 
-            // Save config to sessionStorage to pass to the play page
-            const gameConfig = { surah, qari, amount };
+            // Save config to sessionStorage
+            const gameConfig = { mode, target, qari, amount };
             sessionStorage.setItem('ayatGameConfig', JSON.stringify(gameConfig));
 
             // Navigate to play page
@@ -33,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (gameInterface) {
         const configStr = sessionStorage.getItem('ayatGameConfig');
         if (!configStr) {
-            window.location.href = '/game'; // Redirect if no config
+            window.location.href = '/game'; 
             return;
         }
         
@@ -57,6 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
+            if (data.error) {
+                alert("Gagal memuat permainan: " + data.error);
+                window.location.href = '/game';
+                return;
+            }
             questions = data;
             totalNumEl.textContent = questions.length;
             loadQuestion(0);
@@ -93,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function checkAnswer(btn, selected, correct) {
-            // Disable all buttons
             const allBtns = optionsGrid.querySelectorAll('.option-btn');
             allBtns.forEach(b => b.disabled = true);
 
@@ -102,13 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 score++;
             } else {
                 btn.classList.add('wrong');
-                // Highlight correct answer
                 allBtns.forEach(b => {
                     if (b.textContent === correct) b.classList.add('correct');
                 });
             }
 
-            // Wait 1.5s then next question
             setTimeout(() => {
                 currentIndex++;
                 loadQuestion(currentIndex);
@@ -139,9 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
             playBtn.innerHTML = '<i class="fas fa-play"></i>';
         });
 
-        // Play Again logic
         document.getElementById('playAgainBtn').addEventListener('click', () => {
-            window.location.reload(); // Reloads page, logic will re-fetch questions using same config in session
+            window.location.reload(); 
         });
     }
 });

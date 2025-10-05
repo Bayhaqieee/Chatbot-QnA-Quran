@@ -16,7 +16,7 @@ app = Flask(__name__)
 crew = None
 hadith_data_cache = None 
 
-# --- Qari Data ---
+# Qari Data
 QARI_LIST = {
     "01": {"name": "Abdullah Al-Juhany", "image": "src/image/abdullah-al-juhany.jpg"},
     "02": {"name": "Abdul Muhsin Al-Qasim", "image": "src/image/Abdul_Mohsin_Al-Qasim.jpg"},
@@ -34,9 +34,49 @@ QARI_SLUGS = {
     "05": "Misyari-Rasyid-Al-Afasi"
 }
 
-DEFAULT_QARI = "05" 
+DEFAULT_QARI = "05"
 
-# --- HELPER FUNCTIONS ---
+# JUZ MAPPING (Standard boundaries)
+# Format: Juz ID: [{'surah': X, 'start': Y, 'end': Z}, ...]
+# Note: This is a simplified mapping for the game generator logic.
+JUZ_MAPPING = {
+    1: [{'surah': 1, 'start': 1, 'end': 7}, {'surah': 2, 'start': 1, 'end': 141}],
+    2: [{'surah': 2, 'start': 142, 'end': 252}],
+    3: [{'surah': 2, 'start': 253, 'end': 286}, {'surah': 3, 'start': 1, 'end': 92}],
+    4: [{'surah': 3, 'start': 93, 'end': 200}, {'surah': 4, 'start': 1, 'end': 23}],
+    5: [{'surah': 4, 'start': 24, 'end': 147}],
+    6: [{'surah': 4, 'start': 148, 'end': 176}, {'surah': 5, 'start': 1, 'end': 81}],
+    7: [{'surah': 5, 'start': 82, 'end': 120}, {'surah': 6, 'start': 1, 'end': 110}],
+    8: [{'surah': 6, 'start': 111, 'end': 165}, {'surah': 7, 'start': 1, 'end': 87}],
+    9: [{'surah': 7, 'start': 88, 'end': 206}, {'surah': 8, 'start': 1, 'end': 40}],
+    10: [{'surah': 8, 'start': 41, 'end': 75}, {'surah': 9, 'start': 1, 'end': 92}],
+    11: [{'surah': 9, 'start': 93, 'end': 129}, {'surah': 10, 'start': 1, 'end': 109}, {'surah': 11, 'start': 1, 'end': 5}],
+    12: [{'surah': 11, 'start': 6, 'end': 123}, {'surah': 12, 'start': 1, 'end': 52}],
+    13: [{'surah': 12, 'start': 53, 'end': 111}, {'surah': 13, 'start': 1, 'end': 43}, {'surah': 14, 'start': 1, 'end': 52}],
+    14: [{'surah': 15, 'start': 1, 'end': 99}, {'surah': 16, 'start': 1, 'end': 128}], # Simplified: 15 & 16 are mostly Juz 14
+    15: [{'surah': 17, 'start': 1, 'end': 111}, {'surah': 18, 'start': 1, 'end': 74}],
+    16: [{'surah': 18, 'start': 75, 'end': 110}, {'surah': 19, 'start': 1, 'end': 98}, {'surah': 20, 'start': 1, 'end': 135}],
+    17: [{'surah': 21, 'start': 1, 'end': 112}, {'surah': 22, 'start': 1, 'end': 78}],
+    18: [{'surah': 23, 'start': 1, 'end': 118}, {'surah': 24, 'start': 1, 'end': 64}, {'surah': 25, 'start': 1, 'end': 20}],
+    19: [{'surah': 25, 'start': 21, 'end': 77}, {'surah': 26, 'start': 1, 'end': 227}, {'surah': 27, 'start': 1, 'end': 55}],
+    20: [{'surah': 27, 'start': 56, 'end': 93}, {'surah': 28, 'start': 1, 'end': 88}, {'surah': 29, 'start': 1, 'end': 45}],
+    21: [{'surah': 29, 'start': 46, 'end': 69}, {'surah': 30, 'start': 1, 'end': 60}, {'surah': 31, 'start': 1, 'end': 34}, {'surah': 32, 'start': 1, 'end': 30}, {'surah': 33, 'start': 1, 'end': 30}],
+    22: [{'surah': 33, 'start': 31, 'end': 73}, {'surah': 34, 'start': 1, 'end': 54}, {'surah': 35, 'start': 1, 'end': 45}, {'surah': 36, 'start': 1, 'end': 27}],
+    23: [{'surah': 36, 'start': 28, 'end': 83}, {'surah': 37, 'start': 1, 'end': 182}, {'surah': 38, 'start': 1, 'end': 88}, {'surah': 39, 'start': 1, 'end': 31}],
+    24: [{'surah': 39, 'start': 32, 'end': 75}, {'surah': 40, 'start': 1, 'end': 85}, {'surah': 41, 'start': 1, 'end': 46}],
+    25: [{'surah': 41, 'start': 47, 'end': 54}, {'surah': 42, 'start': 1, 'end': 53}, {'surah': 43, 'start': 1, 'end': 89}, {'surah': 44, 'start': 1, 'end': 59}, {'surah': 45, 'start': 1, 'end': 37}],
+    26: [{'surah': 46, 'start': 1, 'end': 35}, {'surah': 47, 'start': 1, 'end': 38}, {'surah': 48, 'start': 1, 'end': 29}, {'surah': 49, 'start': 1, 'end': 18}, {'surah': 50, 'start': 1, 'end': 45}, {'surah': 51, 'start': 1, 'end': 30}],
+    27: [{'surah': 51, 'start': 31, 'end': 60}, {'surah': 52, 'start': 1, 'end': 49}, {'surah': 53, 'start': 1, 'end': 62}, {'surah': 54, 'start': 1, 'end': 55}, {'surah': 55, 'start': 1, 'end': 78}, {'surah': 56, 'start': 1, 'end': 96}, {'surah': 57, 'start': 1, 'end': 29}],
+    28: [{'surah': 58, 'start': 1, 'end': 22}, {'surah': 59, 'start': 1, 'end': 24}, {'surah': 60, 'start': 1, 'end': 13}, {'surah': 61, 'start': 1, 'end': 14}, {'surah': 62, 'start': 1, 'end': 11}, {'surah': 63, 'start': 1, 'end': 11}, {'surah': 64, 'start': 1, 'end': 18}, {'surah': 65, 'start': 1, 'end': 12}, {'surah': 66, 'start': 1, 'end': 12}],
+    29: [{'surah': 67, 'start': 1, 'end': 30}, {'surah': 68, 'start': 1, 'end': 52}, {'surah': 69, 'start': 1, 'end': 52}, {'surah': 70, 'start': 1, 'end': 44}, {'surah': 71, 'start': 1, 'end': 28}, {'surah': 72, 'start': 1, 'end': 28}, {'surah': 73, 'start': 1, 'end': 20}, {'surah': 74, 'start': 1, 'end': 56}, {'surah': 75, 'start': 1, 'end': 40}, {'surah': 76, 'start': 1, 'end': 31}, {'surah': 77, 'start': 1, 'end': 50}],
+    30: [{'surah': 78, 'start': 1, 'end': 40}, {'surah': 114, 'start': 1, 'end': 6}] # Simplified: Covers 78-114.
+}
+# Note for Juz 30 and others: In the game generator logic, if I don't list every single surah in the range, 
+# I'll simply iterate through surahs from start to end of the Juz if needed.
+# For simplicity in this code block, I'm keeping the mapping explicit where splits happen. 
+# For fully contiguous Juz (like 30), logic below handles picking.
+
+# HELPER FUNCTIONS
 def to_eastern_arabic_numerals(number):
     """Converts a standard integer to Eastern Arabic numerals."""
     eastern_numerals = '٠١٢٣٤٥٦٧٨٩'
@@ -45,13 +85,13 @@ def to_eastern_arabic_numerals(number):
 def initialize_crew():
     global crew
     if crew is None:
-        print("--- Initializing Crew for the first time ---")
+        print("Initializing Crew for the first time")
         retrievers = vector_store.get_milvus_retrievers()
         if retrievers and all(retrievers):
             crew = crew_setup.create_crew(*retrievers)
-            print("--- Crew Initialized Successfully ---")
+            print("Crew Initialized Successfully")
         else:
-            print("--- Crew Initialization Failed: Retrievers not available. Run /ingest first. ---")
+            print("Crew Initialization Failed: Retrievers not available. Run /ingest first.")
 
 def get_hadith_df():
     global hadith_data_cache
@@ -60,8 +100,8 @@ def get_hadith_df():
         hadith_data_cache = data_pipeline.load_hadith_for_dictionary()
     return hadith_data_cache
 
-# --- ROUTES ---
-
+# ROUTES
+# (Standard routes omitted for brevity, they remain unchanged: /, /quran, /hadith, /murajaah etc)
 @app.route('/')
 def chat_page():
     return render_template('chat.html')
@@ -150,8 +190,7 @@ def murajaah_detail_page(surah_id):
                            next_surah_id=next_surah_id,
                            current_qari=qari_key)
 
-# --- GAME ROUTES ---
-
+# GAME ROUTES
 @app.route('/game')
 def game_page():
     """Renders the Game menu page."""
@@ -177,26 +216,51 @@ def generate_game_data():
     """Generates random questions for the Ayat Guesser game."""
     try:
         data = request.json
-        surah_target = data.get('surah') # 'all' or surah_id
+        mode = data.get('mode', 'surah') # 'surah' or 'juz'
+        target_id = data.get('target') # surah_id or juz_id
         qari_id = data.get('qari')
         amount = int(data.get('amount', 5))
 
-        surah_list = data_pipeline.get_quran_surah_list() # Need this for max ayat info
+        surah_list = data_pipeline.get_quran_surah_list()
         questions = []
 
         for _ in range(amount):
-            # 1. Pick a Target Surah
-            if surah_target == 'all':
-                target_surah_info = random.choice(surah_list)
-            else:
-                target_surah_info = next((s for s in surah_list if str(s['nomor']) == str(surah_target)), None)
-                if not target_surah_info: continue 
+            target_surah_info = None
+            target_ayat_no = 0
             
+            if mode == 'juz':
+                juz_id = int(target_id)
+                # 1. Pick a range from the Juz
+                juz_ranges = JUZ_MAPPING.get(juz_id, [])
+                # For Juz 30 specifically, we treat it as covering 78 to 114 completely
+                if juz_id == 30:
+                     # Pick random surah from 78 to 114
+                     rand_surah_id = random.randint(78, 114)
+                     target_surah_info = next((s for s in surah_list if s['nomor'] == rand_surah_id), None)
+                     target_ayat_no = random.randint(1, target_surah_info['jumlahAyat'])
+                elif juz_ranges:
+                    # Pick one of the surah ranges within the Juz
+                    selected_range = random.choice(juz_ranges)
+                    target_surah_id = selected_range['surah']
+                    target_surah_info = next((s for s in surah_list if s['nomor'] == target_surah_id), None)
+                    # Pick ayat strictly within the Juz bounds
+                    target_ayat_no = random.randint(selected_range['start'], selected_range['end'])
+                else:
+                    # Fallback: Random
+                    target_surah_info = random.choice(surah_list)
+                    target_ayat_no = random.randint(1, target_surah_info['jumlahAyat'])
+
+            else: # mode == 'surah'
+                if target_id == 'all':
+                    target_surah_info = random.choice(surah_list)
+                    target_ayat_no = random.randint(1, target_surah_info['jumlahAyat'])
+                else:
+                    target_surah_info = next((s for s in surah_list if str(s['nomor']) == str(target_id)), None)
+                    target_ayat_no = random.randint(1, target_surah_info['jumlahAyat'])
+
+            if not target_surah_info: continue
+
             target_surah_no = target_surah_info['nomor']
-            max_ayat = target_surah_info['jumlahAyat']
-            
-            # 2. Pick a Target Ayat
-            target_ayat_no = random.randint(1, max_ayat)
             
             # 3. Construct Audio URL
             qari_slug = QARI_SLUGS.get(qari_id, "Misyari-Rasyid-Al-Afasi")
@@ -204,24 +268,37 @@ def generate_game_data():
             ayat_pad = f"{target_ayat_no:03d}"
             audio_url = f"https://cdn.equran.id/audio-partial/{qari_slug}/{surah_pad}{ayat_pad}.mp3"
 
-            # 4. Generate Options (1 Correct + 3 Wrong)
+            # 4. Generate Options
             correct_answer = f"{target_surah_info['namaLatin']} : {target_ayat_no}"
             options = [correct_answer]
             
             while len(options) < 4:
-                if surah_target == 'all':
-                    # If playing "All Surah", pick random surah and random ayat
-                    wrong_surah = random.choice(surah_list)
-                    wrong_ayat = random.randint(1, wrong_surah['jumlahAyat'])
-                    wrong_option = f"{wrong_surah['namaLatin']} : {wrong_ayat}"
+                if mode == 'juz':
+                     # Distractors from SAME Juz
+                     if juz_id == 30:
+                         wrong_surah_id = random.randint(78, 114)
+                         wrong_surah = next((s for s in surah_list if s['nomor'] == wrong_surah_id), None)
+                         wrong_ayat = random.randint(1, wrong_surah['jumlahAyat'])
+                     else:
+                         wrong_range = random.choice(juz_ranges)
+                         wrong_surah_id = wrong_range['surah']
+                         wrong_surah = next((s for s in surah_list if s['nomor'] == wrong_surah_id), None)
+                         wrong_ayat = random.randint(wrong_range['start'], wrong_range['end'])
+                     
+                     wrong_option = f"{wrong_surah['namaLatin']} : {wrong_ayat}"
+
+                elif mode == 'surah' and target_id != 'all':
+                     # Distractors from SAME Surah
+                     wrong_ayat = random.randint(1, target_surah_info['jumlahAyat'])
+                     while wrong_ayat == target_ayat_no:
+                        wrong_ayat = random.randint(1, target_surah_info['jumlahAyat'])
+                     wrong_option = f"{target_surah_info['namaLatin']} : {wrong_ayat}"
                 else:
-                    # If playing specific Surah, pick same surah but different ayat
-                    wrong_ayat = random.randint(1, max_ayat)
-                    # Ensure we don't pick the target ayat again (though unlikely to match exact correct_answer string)
-                    while wrong_ayat == target_ayat_no:
-                        wrong_ayat = random.randint(1, max_ayat)
-                    wrong_option = f"{target_surah_info['namaLatin']} : {wrong_ayat}"
-                
+                     # Random distractors for 'All Surah'
+                     wrong_surah = random.choice(surah_list)
+                     wrong_ayat = random.randint(1, wrong_surah['jumlahAyat'])
+                     wrong_option = f"{wrong_surah['namaLatin']} : {wrong_ayat}"
+
                 if wrong_option not in options:
                     options.append(wrong_option)
             
@@ -240,7 +317,6 @@ def generate_game_data():
     except Exception as e:
         print(f"Game Generation Error: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
