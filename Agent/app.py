@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import json
 import re
 import random
+import time
+import tiktoken
 
 load_dotenv()
 
@@ -16,7 +18,56 @@ app = Flask(__name__)
 crew = None
 hadith_data_cache = None 
 
-# Qari Data
+# --- RATE LIMIT CONFIGURATION ---
+# Limit: 2000 tokens per IP per 24 hours
+DAILY_TOKEN_LIMIT = 2000
+RESET_INTERVAL = 86400 # 24 hours in seconds
+
+# In-memory store: { '127.0.0.1': { 'tokens_used': 0, 'reset_time': 1234567890 } }
+ip_token_usage = {}
+
+def get_token_count(text):
+    """Counts tokens using tiktoken (cl100k_base is used for GPT-3.5/4)."""
+    try:
+        encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+    except Exception as e:
+        print(f"Token counting error: {e}")
+        # Fallback approximation: ~4 characters per token
+        return len(text) // 4
+
+def check_rate_limit(ip_address, input_text):
+    """
+    Checks if the IP has enough quota for the input text.
+    Returns (allowed: bool, message: str)
+    """
+    current_time = time.time()
+    
+    # Get or initialize usage record for this IP
+    usage_record = ip_token_usage.get(ip_address, {'tokens_used': 0, 'reset_time': current_time + RESET_INTERVAL})
+    
+    # Check if quota needs reset
+    if current_time > usage_record['reset_time']:
+        usage_record = {
+            'tokens_used': 0, 
+            'reset_time': current_time + RESET_INTERVAL
+        }
+    
+    # Calculate tokens for THIS request
+    request_tokens = get_token_count(input_text)
+    
+    # Check if limit would be exceeded
+    if usage_record['tokens_used'] + request_tokens > DAILY_TOKEN_LIMIT:
+        remaining = max(0, DAILY_TOKEN_LIMIT - usage_record['tokens_used'])
+        return False, f"Daily token limit exceeded. You have {remaining} tokens left, but this request requires {request_tokens}."
+    
+    # Update usage
+    usage_record['tokens_used'] += request_tokens
+    ip_token_usage[ip_address] = usage_record
+    
+    return True, None
+
+# --- Qari Data ---
 QARI_LIST = {
     "01": {"name": "Abdullah Al-Juhany", "image": "src/image/abdullah-al-juhany.jpg"},
     "02": {"name": "Abdul Muhsin Al-Qasim", "image": "src/image/Abdul_Mohsin_Al-Qasim.jpg"},
@@ -34,11 +85,9 @@ QARI_SLUGS = {
     "05": "Misyari-Rasyid-Al-Afasi"
 }
 
-DEFAULT_QARI = "05"
+DEFAULT_QARI = "05" 
 
-# JUZ MAPPING (Standard boundaries)
-# Format: Juz ID: [{'surah': X, 'start': Y, 'end': Z}, ...]
-# Note: This is a simplified mapping for the game generator logic.
+# --- JUZ MAPPING ---
 JUZ_MAPPING = {
     1: [{'surah': 1, 'start': 1, 'end': 7}, {'surah': 2, 'start': 1, 'end': 141}],
     2: [{'surah': 2, 'start': 142, 'end': 252}],
@@ -53,7 +102,7 @@ JUZ_MAPPING = {
     11: [{'surah': 9, 'start': 93, 'end': 129}, {'surah': 10, 'start': 1, 'end': 109}, {'surah': 11, 'start': 1, 'end': 5}],
     12: [{'surah': 11, 'start': 6, 'end': 123}, {'surah': 12, 'start': 1, 'end': 52}],
     13: [{'surah': 12, 'start': 53, 'end': 111}, {'surah': 13, 'start': 1, 'end': 43}, {'surah': 14, 'start': 1, 'end': 52}],
-    14: [{'surah': 15, 'start': 1, 'end': 99}, {'surah': 16, 'start': 1, 'end': 128}], # Simplified: 15 & 16 are mostly Juz 14
+    14: [{'surah': 15, 'start': 1, 'end': 99}, {'surah': 16, 'start': 1, 'end': 128}],
     15: [{'surah': 17, 'start': 1, 'end': 111}, {'surah': 18, 'start': 1, 'end': 74}],
     16: [{'surah': 18, 'start': 75, 'end': 110}, {'surah': 19, 'start': 1, 'end': 98}, {'surah': 20, 'start': 1, 'end': 135}],
     17: [{'surah': 21, 'start': 1, 'end': 112}, {'surah': 22, 'start': 1, 'end': 78}],
@@ -69,14 +118,10 @@ JUZ_MAPPING = {
     27: [{'surah': 51, 'start': 31, 'end': 60}, {'surah': 52, 'start': 1, 'end': 49}, {'surah': 53, 'start': 1, 'end': 62}, {'surah': 54, 'start': 1, 'end': 55}, {'surah': 55, 'start': 1, 'end': 78}, {'surah': 56, 'start': 1, 'end': 96}, {'surah': 57, 'start': 1, 'end': 29}],
     28: [{'surah': 58, 'start': 1, 'end': 22}, {'surah': 59, 'start': 1, 'end': 24}, {'surah': 60, 'start': 1, 'end': 13}, {'surah': 61, 'start': 1, 'end': 14}, {'surah': 62, 'start': 1, 'end': 11}, {'surah': 63, 'start': 1, 'end': 11}, {'surah': 64, 'start': 1, 'end': 18}, {'surah': 65, 'start': 1, 'end': 12}, {'surah': 66, 'start': 1, 'end': 12}],
     29: [{'surah': 67, 'start': 1, 'end': 30}, {'surah': 68, 'start': 1, 'end': 52}, {'surah': 69, 'start': 1, 'end': 52}, {'surah': 70, 'start': 1, 'end': 44}, {'surah': 71, 'start': 1, 'end': 28}, {'surah': 72, 'start': 1, 'end': 28}, {'surah': 73, 'start': 1, 'end': 20}, {'surah': 74, 'start': 1, 'end': 56}, {'surah': 75, 'start': 1, 'end': 40}, {'surah': 76, 'start': 1, 'end': 31}, {'surah': 77, 'start': 1, 'end': 50}],
-    30: [{'surah': 78, 'start': 1, 'end': 40}, {'surah': 114, 'start': 1, 'end': 6}] # Simplified: Covers 78-114.
+    30: [{'surah': 78, 'start': 1, 'end': 40}, {'surah': 114, 'start': 1, 'end': 6}]
 }
-# Note for Juz 30 and others: In the game generator logic, if I don't list every single surah in the range, 
-# I'll simply iterate through surahs from start to end of the Juz if needed.
-# For simplicity in this code block, I'm keeping the mapping explicit where splits happen. 
-# For fully contiguous Juz (like 30), logic below handles picking.
 
-# HELPER FUNCTIONS
+# --- HELPER FUNCTIONS ---
 def to_eastern_arabic_numerals(number):
     """Converts a standard integer to Eastern Arabic numerals."""
     eastern_numerals = '٠١٢٣٤٥٦٧٨٩'
@@ -85,13 +130,13 @@ def to_eastern_arabic_numerals(number):
 def initialize_crew():
     global crew
     if crew is None:
-        print("Initializing Crew for the first time")
+        print("--- Initializing Crew for the first time ---")
         retrievers = vector_store.get_milvus_retrievers()
         if retrievers and all(retrievers):
             crew = crew_setup.create_crew(*retrievers)
-            print("Crew Initialized Successfully")
+            print("--- Crew Initialized Successfully ---")
         else:
-            print("Crew Initialization Failed: Retrievers not available. Run /ingest first.")
+            print("--- Crew Initialization Failed: Retrievers not available. Run /ingest first. ---")
 
 def get_hadith_df():
     global hadith_data_cache
@@ -100,8 +145,8 @@ def get_hadith_df():
         hadith_data_cache = data_pipeline.load_hadith_for_dictionary()
     return hadith_data_cache
 
-# ROUTES
-# (Standard routes omitted for brevity, they remain unchanged: /, /quran, /hadith, /murajaah etc)
+# --- ROUTES ---
+
 @app.route('/')
 def chat_page():
     return render_template('chat.html')
@@ -190,7 +235,6 @@ def murajaah_detail_page(surah_id):
                            next_surah_id=next_surah_id,
                            current_qari=qari_key)
 
-# GAME ROUTES
 @app.route('/game')
 def game_page():
     """Renders the Game menu page."""
@@ -230,23 +274,17 @@ def generate_game_data():
             
             if mode == 'juz':
                 juz_id = int(target_id)
-                # 1. Pick a range from the Juz
                 juz_ranges = JUZ_MAPPING.get(juz_id, [])
-                # For Juz 30 specifically, we treat it as covering 78 to 114 completely
                 if juz_id == 30:
-                     # Pick random surah from 78 to 114
                      rand_surah_id = random.randint(78, 114)
                      target_surah_info = next((s for s in surah_list if s['nomor'] == rand_surah_id), None)
                      target_ayat_no = random.randint(1, target_surah_info['jumlahAyat'])
                 elif juz_ranges:
-                    # Pick one of the surah ranges within the Juz
                     selected_range = random.choice(juz_ranges)
                     target_surah_id = selected_range['surah']
                     target_surah_info = next((s for s in surah_list if s['nomor'] == target_surah_id), None)
-                    # Pick ayat strictly within the Juz bounds
                     target_ayat_no = random.randint(selected_range['start'], selected_range['end'])
                 else:
-                    # Fallback: Random
                     target_surah_info = random.choice(surah_list)
                     target_ayat_no = random.randint(1, target_surah_info['jumlahAyat'])
 
@@ -261,20 +299,16 @@ def generate_game_data():
             if not target_surah_info: continue
 
             target_surah_no = target_surah_info['nomor']
-            
-            # 3. Construct Audio URL
             qari_slug = QARI_SLUGS.get(qari_id, "Misyari-Rasyid-Al-Afasi")
             surah_pad = f"{target_surah_no:03d}"
             ayat_pad = f"{target_ayat_no:03d}"
             audio_url = f"https://cdn.equran.id/audio-partial/{qari_slug}/{surah_pad}{ayat_pad}.mp3"
 
-            # 4. Generate Options
             correct_answer = f"{target_surah_info['namaLatin']} : {target_ayat_no}"
             options = [correct_answer]
             
             while len(options) < 4:
                 if mode == 'juz':
-                     # Distractors from SAME Juz
                      if juz_id == 30:
                          wrong_surah_id = random.randint(78, 114)
                          wrong_surah = next((s for s in surah_list if s['nomor'] == wrong_surah_id), None)
@@ -288,13 +322,11 @@ def generate_game_data():
                      wrong_option = f"{wrong_surah['namaLatin']} : {wrong_ayat}"
 
                 elif mode == 'surah' and target_id != 'all':
-                     # Distractors from SAME Surah
                      wrong_ayat = random.randint(1, target_surah_info['jumlahAyat'])
                      while wrong_ayat == target_ayat_no:
                         wrong_ayat = random.randint(1, target_surah_info['jumlahAyat'])
                      wrong_option = f"{target_surah_info['namaLatin']} : {wrong_ayat}"
                 else:
-                     # Random distractors for 'All Surah'
                      wrong_surah = random.choice(surah_list)
                      wrong_ayat = random.randint(1, wrong_surah['jumlahAyat'])
                      wrong_option = f"{wrong_surah['namaLatin']} : {wrong_ayat}"
@@ -320,8 +352,17 @@ def generate_game_data():
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
-    initialize_crew()
-    topic = request.json.get('topic')
+    # RATE LIMIT CHECK
+    topic = request.json.get('topic', '')
+    ip = request.remote_addr
+    is_allowed, used, requested = check_rate_limit(ip, topic)
+    if not is_allowed:
+        return jsonify({
+            "status": "error", 
+            "answer": f"Rate limit exceeded. You have used {used}/{DAILY_TOKEN_LIMIT} tokens. Request requires {requested}."
+        }), 429
+
+    initialize_crew() 
     if not topic:
         return jsonify({"error": "'topic' is required."}), 400
 

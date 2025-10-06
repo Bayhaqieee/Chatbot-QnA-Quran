@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!nextSurahId || parseInt(nextSurahId) > 114) return; // No next surah
 
             nextSurahModal.style.display = 'flex';
-            let timeLeft = 10;
+            let timeLeft = 5;
             countdownDisplay.textContent = timeLeft;
 
             countdownInterval = setInterval(() => {
