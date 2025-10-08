@@ -1,7 +1,0 @@
-.env
-venv/
-kaggle.json
-volumes/
-__pycache__/
-datasets/
-searxng/
